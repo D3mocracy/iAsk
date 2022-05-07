@@ -24,9 +24,15 @@ class Handlers {
 
 
     async iHaveAQuestion() {
-        this.question = { authorId: this.user.id, done: false };
+        this.question = { authorId: this.user.id, deleted: false };
         await this.channel.send({ embeds: [Embeds.chooseGuild], components: [Components.chooseGuildMenu(this.bot, this.user)] });
 
+    }
+
+    async isReachedLimit() {
+        const db = new DataBase();
+        const qList = await db.questionsCollection.find({ authorId: this.user.id, guildId: this.question.guildId }).toArray();
+        return qList.length === Config.maxQuestionsPerGuild + 1;
     }
 
     async chooseGuild(guildId: string) {
@@ -52,14 +58,8 @@ class Handlers {
         });
     }
 
-    async chooseDone(done: boolean) {
-        this.question.done = done;
-        await this.channel.send(Config.succsesMsg);
-    }
-
     async deleteQuestion() {
-        const db = new DataBase();
-        await db.questionsCollection.deleteOne({ guildId: this.question.guildId, authorId: this.question.authorId });
+        this.question.deleted = true;
     }
 
     async createChannelOnGuild() {
@@ -76,12 +76,15 @@ class Handlers {
     async save() {
         const db = new DataBase();
         if (this.question === undefined) return;
-        await db.questionsCollection.updateOne({ authorId: this.question.authorId }, { $set: this.question }, { upsert: true });
+        if (!this.question._id) {
+            await db.questionsCollection.insertOne(this.question);
+        }
+        await db.questionsCollection.updateOne({ _id: this.question._id }, { $set: this.question }, { upsert: true });
     }
 
     async load() {
         const db = new DataBase();
-        this.question = await db.questionsCollection.findOne({ authorId: this.user.id })
+        this.question = await db.questionsCollection.findOne({ authorId: this.user.id }, { sort: { _id: -1 } })
     }
 }
 

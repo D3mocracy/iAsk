@@ -15,7 +15,10 @@ class Config {
     static readonly iHaveAQuestionMessage: string = "i have a question";
 
     @configurable()
-    static readonly maxQuestionsPerGuild: number = 1;
+    static readonly maxQuestionsPerGuild: number = 2;
+
+    @configurable()
+    static readonly reachLimitQuestionsError: string = "You have reached the limit.";
 
     @configurable()
     static readonly error404: string = "Error 404: Could not find common guilds between us!";
