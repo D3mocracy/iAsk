@@ -1,8 +1,10 @@
 import { Guild } from "discord.js"
+import { ObjectId } from "mongodb"
 
 export type Question = {
+    _id?: ObjectId,
     authorId: string,
-    deleted?: boolean,
+    deleted: boolean,
     guildId?: string,
     counter?: number,
     title?: string,

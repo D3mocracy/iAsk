@@ -1,15 +1,17 @@
-import { Client, DMChannel, Guild, GuildMember, Message, SelectMenuInteraction, User } from "discord.js";
+import { Client, DMChannel, Guild, GuildMember, User } from "discord.js";
 import Config from "./config";
 import Components from "./embedsAndComps/components";
 import DataBase from "./db";
 import Embeds from "./embedsAndComps/Embeds";
 import { Question } from "./types";
+import { MissingGuildIdError } from "./error";
 
 class Handlers {
     private channel: DMChannel;
-    private question: any;
+    private question: Question;
     constructor(private bot: Client, private user: User, channel: any) {
         this.channel = channel; // TS issues
+        this.question = { authorId: this.user.id, deleted: false }
     }
 
     static async createHandler(bot: Client, user: User, channel: any) {
@@ -24,7 +26,6 @@ class Handlers {
 
 
     async iHaveAQuestion() {
-        this.question = { authorId: this.user.id, deleted: false };
         await this.channel.send({ embeds: [Embeds.chooseGuild], components: [Components.chooseGuildMenu(this.bot, this.user)] });
 
     }
@@ -53,7 +54,7 @@ class Handlers {
         this.question.anonymous = anonymous;
         await this.channel.send({
             content: Config.askSureMessage,
-            embeds: [Embeds.questionMessage(this.question.title, this.question.description, this.question.anonymous ? "Anonymous" : `${this.user.tag}`)],
+            embeds: [Embeds.questionMessage(this.question.title || "Error 404", this.question.description || "Error 404", this.question.anonymous ? "Anonymous" : `${this.user.tag}`)],
             components: [Components.chooseSureMessage()]
         });
     }
@@ -63,10 +64,11 @@ class Handlers {
     }
 
     async createChannelOnGuild() {
+        if (!this.question.guildId) throw new MissingGuildIdError();
         const guild = await this.bot.guilds.fetch(this.question.guildId);
-        const guildChannel = await guild.channels.create(this.question.title, { type: "GUILD_TEXT" });
+        const guildChannel = await guild.channels.create(this.question.title || "Error 404", { type: "GUILD_TEXT" });
         this.question.channelId = guildChannel.id;
-        await guildChannel.send({ embeds: [Embeds.questionMessage(this.question.title, this.question.description, this.question.anonymous ? "Anonymous" : `${this.user.tag}`, this.question.channelId)] });
+        await guildChannel.send({ embeds: [Embeds.questionMessage(this.question.title || "Error 404", this.question.description || "Error 404", this.question.anonymous ? "Anonymous" : `${this.user.tag}`, this.question.channelId)] });
     }
 
     get questionObject() {
@@ -84,7 +86,7 @@ class Handlers {
 
     async load() {
         const db = new DataBase();
-        this.question = await db.questionsCollection.findOne({ authorId: this.user.id }, { sort: { _id: -1 } })
+        this.question = (await db.questionsCollection.findOne({ authorId: this.user.id }, { sort: { _id: -1 } }) as any) || this.question;
     }
 }
 
