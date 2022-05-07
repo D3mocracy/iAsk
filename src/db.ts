@@ -8,9 +8,7 @@ class DataBase {
     static async init() {
         await DataBase.client.connect();
     }
-    get questionsCollection() {
-        return DataBase.client.db("iAskBot").collection("Questions");
-    }
+    static questionsCollection = DataBase.client.db("iAskBot").collection("Questions");
 }
 
 export default DataBase;

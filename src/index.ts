@@ -17,7 +17,8 @@ client.on("messageCreate", async message => {
             return;
         }
         const handler = await Handlers.createHandler(client, message.author, message.channel);
-        if (message.content.toLowerCase() === Config.iHaveAQuestionMessage.toLowerCase()) {//User sent "I have a question"
+
+        if (message.content.toLowerCase() === Config.iHaveAQuestionMessage.toLowerCase() && !handler.questionObject.started) {
             await handler.iHaveAQuestion();
         } else if (!handler.questionObject.guildId) {
             await message.reply(Config.pleaseChooseGuildBeforeContinue);
@@ -26,6 +27,7 @@ client.on("messageCreate", async message => {
         } else if (!handler.questionObject.description) {
             await handler?.chooseDescription(message.content);
         }
+
         await handler.save();
     }
 });
@@ -47,10 +49,6 @@ client.on('interactionCreate', async interaction => {
         }
 
     } else if (interaction.isButton()) {
-        console.log(!handler.questionObject.channelId);
-        console.log();
-
-
         if (handler.questionObject.anonymous === undefined) {
             await handler.chooseAnonymous(interaction.customId === "anon-yes");
         } else if (!handler.questionObject.channelId) {

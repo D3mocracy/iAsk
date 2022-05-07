@@ -26,13 +26,12 @@ class Handlers {
 
 
     async iHaveAQuestion() {
+        this.question.started = true;
         await this.channel.send({ embeds: [Embeds.chooseGuild], components: [Components.chooseGuildMenu(this.bot, this.user)] });
-
     }
 
     async isReachedLimit() {
-        const db = new DataBase();
-        const qList = await db.questionsCollection.find({ authorId: this.user.id, guildId: this.question.guildId }).toArray();
+        const qList = await DataBase.questionsCollection.find({ authorId: this.user.id, guildId: this.question.guildId }).toArray();
         return qList.length === Config.maxQuestionsPerGuild + 1;
     }
 
@@ -76,17 +75,15 @@ class Handlers {
     }
 
     async save() {
-        const db = new DataBase();
-        if (this.question === undefined) return;
         if (!this.question._id) {
-            await db.questionsCollection.insertOne(this.question);
+            await DataBase.questionsCollection.insertOne(this.question);
+            return;
         }
-        await db.questionsCollection.updateOne({ _id: this.question._id }, { $set: this.question }, { upsert: true });
+        await DataBase.questionsCollection.updateOne({ _id: this.question._id }, { $set: this.question }, { upsert: true });
     }
 
     async load() {
-        const db = new DataBase();
-        this.question = (await db.questionsCollection.findOne({ authorId: this.user.id }, { sort: { _id: -1 } }) as any) || this.question;
+        this.question = (await DataBase.questionsCollection.findOne({ authorId: this.user.id, channelId: { $exists: 0 } }) as any) || this.question;
     }
 }
 
