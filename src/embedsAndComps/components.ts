@@ -1,13 +1,14 @@
 import { Client, Guild, GuildMember, MessageActionRow, MessageButton, MessageSelectMenu, User } from "discord.js";
 import Config from "../config";
-import Handlers from "../handler";
+import OpenQuestionHandler from "../handlers/openQuestion";
+import Utils from "../utils";
 
 namespace Components {
 
     export function chooseGuildMenu(bot: Client, user: User) {
         const chooseGuildMenu = new MessageSelectMenu().setCustomId('choose-guild').setPlaceholder(Config.chooseGuildEmbedMessagePlaceHolder);
 
-        Handlers.commonGuilds(bot, user).forEach(g => {
+        Utils.commonGuilds(bot, user).forEach(g => {
             chooseGuildMenu.addOptions([{
                 label: g.name,
                 description: g.description || g.name,

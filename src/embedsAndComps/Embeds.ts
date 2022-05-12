@@ -16,6 +16,11 @@ namespace Embeds {
         );
         return msg;
     }
+
+    export const worngUsageManageMsg = new MessageEmbed({
+        title: "Wrong Usage",
+        description: `Use like: ${Config.managePrefix} [${Config.manageMember} / ${Config.manageQuestion}] [id]`
+    })
 }
 
 export default Embeds;

@@ -1,12 +1,12 @@
 import { Client, DMChannel, Guild, GuildMember, User } from "discord.js";
-import Config from "./config";
-import Components from "./embedsAndComps/components";
-import DataBase from "./db";
-import Embeds from "./embedsAndComps/Embeds";
-import { Question } from "./types";
-import { MissingGuildIdError } from "./error";
+import Config from "../config";
+import Components from "../embedsAndComps/components";
+import DataBase from "../db";
+import Embeds from "../embedsAndComps/Embeds";
+import { Question } from "../types";
+import { MissingGuildIdError } from "../error";
 
-class Handlers {
+class OpenQuestionHandler {
     private channel: DMChannel;
     private question: Question;
     constructor(private bot: Client, private user: User, channel: any) {
@@ -15,15 +15,10 @@ class Handlers {
     }
 
     static async createHandler(bot: Client, user: User, channel: any) {
-        const handler = new Handlers(bot, user, channel);
+        const handler = new OpenQuestionHandler(bot, user, channel);
         await handler.load();
         return handler;
     }
-
-    static commonGuilds(bot: Client, user: User) {
-        return bot.guilds.cache.filter((g: Guild) => { return !!g.members.cache.find((m: GuildMember) => m.id === user.id); });
-    }
-
 
     async iHaveAQuestion() {
         this.question.started = true;
@@ -87,4 +82,4 @@ class Handlers {
     }
 }
 
-export default Handlers;
+export default OpenQuestionHandler;

@@ -72,6 +72,15 @@ class Config {
 
     @configurable()
     static readonly succsesMsg: string = "Great! I have sent the question, let's wait for answers.";
+
+    @configurable()
+    static readonly managePrefix: string = "!manage";
+
+    @configurable()
+    static readonly manageQuestion: string = "question";
+
+    @configurable()
+    static readonly manageMember: string = "member";
 }
 
 export default Config;

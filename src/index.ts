@@ -2,7 +2,10 @@ require("dotenv").config();
 import { Client, Intents, SelectMenuInteraction } from "discord.js";
 import Config from "./config";
 import DataBase from "./db";
-import Handlers from "./handler";
+import Embeds from "./embedsAndComps/Embeds";
+import ManageQuestionHandler from "./handlers/manageQuestion";
+import OpenQuestionHandler from "./handlers/openQuestion";
+import Utils from "./utils";
 const client: Client = new Client({ partials: ["CHANNEL"], intents: new Intents(32767) });
 
 
@@ -11,29 +14,47 @@ client.on("ready", () => {
 })
 
 client.on("messageCreate", async message => {
+
     if (message.channel.type === "DM" && message.author != client.user) {
-        if (Handlers.commonGuilds(client, message.author).size === 0) {
+        if (Utils.commonGuilds(client, message.author).size === 0) {
             await message.channel.send(Config.error404);
             return;
         }
-        const handler = await Handlers.createHandler(client, message.author, message.channel);
+        const openQuesitonHandler = await OpenQuestionHandler.createHandler(client, message.author, message.channel);
 
-        if (message.content.toLowerCase() === Config.iHaveAQuestionMessage.toLowerCase() && !handler.questionObject.started) {
-            await handler.iHaveAQuestion();
-        } else if (!handler.questionObject.guildId) {
+        if (message.content.toLowerCase() === Config.iHaveAQuestionMessage.toLowerCase() && !openQuesitonHandler.questionObject.started) {
+            await openQuesitonHandler.iHaveAQuestion();
+        } else if (!openQuesitonHandler.questionObject.guildId) {
             await message.reply(Config.pleaseChooseGuildBeforeContinue);
-        } else if (!handler.questionObject.title) {
-            await handler?.chooseTitle(message.content);
-        } else if (!handler.questionObject.description) {
-            await handler?.chooseDescription(message.content);
+        } else if (!openQuesitonHandler.questionObject.title) {
+            await openQuesitonHandler?.chooseTitle(message.content);
+        } else if (!openQuesitonHandler.questionObject.description) {
+            await openQuesitonHandler?.chooseDescription(message.content);
         }
 
-        await handler.save();
+        const args = message.content.split(" ");
+        if (args.length === 3) {
+            if (args[0].toLowerCase() === Config.managePrefix) {
+                if (args[1] === Config.manageQuestion) {
+                    const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, args[2], message.author);
+
+                } else if (args[1] === Config.manageMember) {
+
+                } else {
+                    await message.channel.send({ embeds: [Embeds.worngUsageManageMsg] });
+                }
+
+            }
+        } else {
+            await message.channel.send({ embeds: [Embeds.worngUsageManageMsg] });
+        }
+
+        await openQuesitonHandler.save();
     }
 });
 
 client.on('interactionCreate', async interaction => {
-    const handler = await Handlers.createHandler(client, interaction.user, interaction.channel);
+    const handler = await OpenQuestionHandler.createHandler(client, interaction.user, interaction.channel);
     if (interaction.isSelectMenu()) {
         if (interaction.customId === "choose-guild") {
             await handler.chooseGuild(interaction.values[0]);
