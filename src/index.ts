@@ -1,16 +1,17 @@
 require("dotenv").config();
-import { Client, Intents, SelectMenuInteraction } from "discord.js";
+import { ButtonInteraction, Client, Intents, SelectMenuInteraction, TextChannel } from "discord.js";
 import Config from "./config";
 import DataBase from "./db";
 import Components from "./embedsAndComps/components";
 import Embeds from "./embedsAndComps/Embeds";
+import ChangeDetailsHandler from "./handlers/changeDetails";
 import ManageQuestionHandler from "./handlers/manageQuestion";
 import OpenQuestionHandler from "./handlers/openQuestion";
 import Utils from "./utils";
 const client: Client = new Client({ partials: ["CHANNEL"], intents: new Intents(32767) });
 
 
-client.on("ready", () => {
+client.on("ready", async () => {
     console.log("iAsk is online! :D");
 })
 
@@ -24,23 +25,37 @@ client.on("messageCreate", async message => {
             return;
         }
 
+        if (await ChangeDetailsHandler.checkIfUserIsManagingDetail(message.author)) {
+            const changeDetailHandler = await ChangeDetailsHandler.createHandler(client, message.author.id);
+            if (changeDetailHandler === undefined) return;
+            const detail = changeDetailHandler.manageObject.status;
+            const options: any = {
+                "change-title": async () => changeDetailHandler?.setTitle(message.content),
+                "change-description": async () => changeDetailHandler?.setDescription(message.content),
+            }
 
-        if (args[0].toLowerCase() === Config.managePrefix) {
-            if (args.length === 3) {
-                if (args[1] === Config.manageChannel) {
+            await options[detail]();
+            await changeDetailHandler?.save();
+            await changeDetailHandler.exit();
+            return;
+        }
+
+        if (args[0].toLowerCase() === Config.managePrefix) { //check first word is !manage
+            if (args.length === 3) { //check if message has 3 arguments
+                if (args[1] === Config.manageChannel) { //if choose to manage channel
                     // const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, args[2], message.channel, message.author);
                     await message.reply({ embeds: [Embeds.questionManageMessage(args[2])], components: [Components.manageQuestionMenu()] });
 
-                } else if (args[1] === Config.manageMember) {
+                } else if (args[1] === Config.manageMember) { //if choose to manage user
 
                 } else {
                     await message.channel.send({ embeds: [Embeds.worngUsageManageMsg] });
                 }
-
+                return;
             } else {
                 await message.channel.send({ embeds: [Embeds.worngUsageManageMsg] });
+                return;
             }
-            return;
         }
 
         const openQuesitonHandler = await OpenQuestionHandler.createHandler(client, message.author, message.channel);
@@ -64,6 +79,8 @@ client.on("messageCreate", async message => {
             await openQuesitonHandler.save();
             return;
         }
+    } else if (message.channel.type === "GUILD_TEXT" && message.author != client.user) {
+
     }
 });
 
@@ -89,7 +106,6 @@ client.on('interactionCreate', async interaction => {
 
             const managedChannelId: string = (interaction as SelectMenuInteraction).message.embeds[0].footer?.text.replaceAll(`${Config.channelIDFooter} `, "") as any;
             const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, managedChannelId, interaction.channel, interaction.user);
-
             if (!manageQuestionHandler) return;
 
             const options: any = {
@@ -98,15 +114,25 @@ client.on('interactionCreate', async interaction => {
                 "question-unlock": async () => manageQuestionHandler.unlockQuestion(),
                 "question-reveal": async () => manageQuestionHandler.revealUserTag(),
                 "question-log": async () => manageQuestionHandler.logQuestion(),
+                "question-details-change": async () => manageQuestionHandler.chooseChangeDetail(),
             }
 
             await options[interaction.values[0]]();
             await manageQuestionHandler.save();
             interaction.update({ components: [Components.manageQuestionMenu()] });
 
+        } else if (interaction.customId === "change-dtl") {
+            const managedChannelId: string = (interaction as SelectMenuInteraction).message.embeds[0].footer?.text.replaceAll(`${Config.channelIDFooter} `, "") as any;
+            const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, managedChannelId, interaction.channel, interaction.user);
+            if (!manageQuestionHandler) return;
+            if (interaction.values[0] === "change-anonymous") {
+                await manageQuestionHandler.switchAnonymous();
+            } else {
+                await manageQuestionHandler.changeDetail(interaction.values[0]);
+            }
+            await manageQuestionHandler.save();
+            interaction.update({ components: [Components.changeDetails()] });
         }
-
-
 
     } else if (interaction.isButton()) {
         const openQuestionHandler = await OpenQuestionHandler.createHandler(client, interaction.user, interaction.channel);
@@ -121,10 +147,11 @@ client.on('interactionCreate', async interaction => {
             }
         }
         await openQuestionHandler.save();
-        interaction.update({ embeds: [], components: [] });
-    }
-})
 
+        interaction.update({ embeds: [], components: [] });
+
+    }
+});
 
 
 DataBase.init().then(() => client.login(Config.TOKEN));

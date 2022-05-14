@@ -14,3 +14,9 @@ export type Question = {
     channelId?: string,
     lock?: boolean,
 }
+
+export type ManagementDetails = {
+    managerId: string,
+    status: string,
+    channelId: string,
+}

@@ -43,6 +43,16 @@ namespace Embeds {
         description: "Question is now unlocked",
         color: "GREEN"
     });
+
+    export function changeDetails(channelId: string) {
+        return new MessageEmbed({
+            title: "Choose Detail",
+            description: "Please choose one of the options below",
+            color: "BLURPLE",
+            footer: { text: `${Config.channelIDFooter} ${channelId}` }
+        });
+    }
+
 }
 
 export default Embeds;

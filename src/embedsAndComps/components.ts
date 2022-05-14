@@ -25,6 +25,7 @@ namespace Components {
         { rank: "Manager", label: "Unlock", description: "Unlock the question", value: "question-unlock" },
         { rank: "Manager", label: "Reveal", description: "Reveal the user tag", value: "question-reveal" },
         { rank: "Manager", label: "Log", description: "Log question channel", value: "question-log" },
+        { rank: "Manager", label: "Change Details", description: "Change details of the question", value: "question-details-change" },
     ];
     export function manageQuestionMenu() {
         const manageQuestionMenu = new MessageSelectMenu().setCustomId('channel-mng').setPlaceholder('Choose an option');
@@ -42,6 +43,18 @@ namespace Components {
         const yesButton = new MessageButton().setCustomId("sure-yes").setLabel(Config.yesSureButton).setStyle("SUCCESS");
         const noButton = new MessageButton().setCustomId("sure-no").setLabel(Config.noSureButton).setStyle("DANGER");
         return new MessageActionRow().addComponents(yesButton, noButton);
+    }
+
+    const detailsOptionList: (MessageSelectOptionData)[] = [
+        { label: "Title", description: "Delete the question", value: "change-title" },
+        { label: "Description", description: "Lock the question", value: "change-description" },
+        // { label: "Anonymous", description: "Unlock the question", value: "change-anonymous" },
+    ];
+
+    export function changeDetails() {
+        const changeDetailsMenu = new MessageSelectMenu().setCustomId('change-dtl').setPlaceholder('Choose an option');
+        changeDetailsMenu.addOptions(detailsOptionList)
+        return new MessageActionRow().addComponents(changeDetailsMenu);
     }
 }
 

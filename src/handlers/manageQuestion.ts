@@ -1,6 +1,6 @@
 import { Client, DMChannel, GuildMember, Role, TextChannel, User } from "discord.js";
 import DataBase from "../db";
-import { Question } from "../types";
+import { ManagementDetails, Question } from "../types";
 import { MissingGuildIdError, UnknownChannel } from "../error"
 import Config from "../config";
 import Embeds from "../embedsAndComps/Embeds";
@@ -11,7 +11,8 @@ class ManageQuestionHandler {
     private question: Question = {} as any;
     private questionChannel: TextChannel = {} as any;
     private dmChannel: DMChannel;
-    private constructor(private bot: Client, private questionChannelId: string, dmChannel: any, sender: User) {
+    private manageDetail: ManagementDetails = {} as any;
+    private constructor(private bot: Client, private questionChannelId: string, dmChannel: any, private sender: User) {
         this.dmChannel = dmChannel;
     }
 
@@ -34,6 +35,10 @@ class ManageQuestionHandler {
         this.question = (await DataBase.questionsCollection.findOne({ channelId: this.questionChannelId, deleted: false }) as any) || this.question;
         if (!this.question.guildId) throw new MissingGuildIdError();
         this.questionChannel = await (await this.bot.guilds.fetch(this.question.guildId)).channels.fetch(this.questionChannelId) as any;
+    }
+
+    get questionObject() {
+        return this.question;
     }
 
     async deleteQuestion() {
@@ -76,8 +81,6 @@ class ManageQuestionHandler {
     }
 
     async logQuestion() {
-        console.log(this.question.title);
-
         const attachment = await createTranscript(this.questionChannel, {
             limit: -1,
             returnType: "attachment",
@@ -85,6 +88,25 @@ class ManageQuestionHandler {
         });
         await this.dmChannel.send({ files: [attachment] });
     }
+
+    async chooseChangeDetail() {
+        await this.dmChannel.send({ embeds: [Embeds.changeDetails(this.questionChannelId)], components: [Components.changeDetails()] })
+    }
+
+    async changeDetail(detail: string) {
+        const messages: any = {
+            "change-title": "Please type a new title",
+            "change-description": "Please type a new description",
+        }
+        await DataBase.managementCollection.updateOne({ managerId: this.sender.id }, { $set: { status: detail, channelId: this.questionChannelId } }, { upsert: true });
+        this.dmChannel.send(messages[detail]);
+
+    }
+
+    async switchAnonymous() {
+        this.question.anonymous = !this.question.anonymous;
+    }
+
 }
 
 export default ManageQuestionHandler;
