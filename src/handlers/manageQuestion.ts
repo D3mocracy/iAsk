@@ -5,6 +5,7 @@ import { MissingGuildIdError, UnknownChannel } from "../error"
 import Config from "../config";
 import Embeds from "../embedsAndComps/Embeds";
 import Components from "../embedsAndComps/components";
+import { createTranscript } from "discord-html-transcripts";
 
 class ManageQuestionHandler {
     private question: Question = {} as any;
@@ -72,6 +73,17 @@ class ManageQuestionHandler {
     async revealUserTag() {
         const memberTag = (await (await this.bot.guilds.fetch(this.question.guildId as string)).members.fetch(this.question.authorId)).user.tag;
         await this.dmChannel.send(`The user is ${memberTag}`)
+    }
+
+    async logQuestion() {
+        console.log(this.question.title);
+
+        const attachment = await createTranscript(this.questionChannel, {
+            limit: -1,
+            returnType: "attachment",
+            fileName: `question_log.html`
+        });
+        await this.dmChannel.send({ files: [attachment] });
     }
 }
 

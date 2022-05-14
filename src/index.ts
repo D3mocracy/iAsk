@@ -97,6 +97,7 @@ client.on('interactionCreate', async interaction => {
                 "question-lock": async () => manageQuestionHandler.lockQuestion(),
                 "question-unlock": async () => manageQuestionHandler.unlockQuestion(),
                 "question-reveal": async () => manageQuestionHandler.revealUserTag(),
+                "question-log": async () => manageQuestionHandler.logQuestion(),
             }
 
             await options[interaction.values[0]]();
