@@ -1,4 +1,4 @@
-import { Client, Guild, GuildMember, MessageActionRow, MessageButton, MessageSelectMenu, User } from "discord.js";
+import { Client, Guild, GuildMember, MessageActionRow, MessageButton, MessageSelectMenu, MessageSelectOptionData, User } from "discord.js";
 import Config from "../config";
 import OpenQuestionHandler from "../handlers/openQuestion";
 import Utils from "../utils";
@@ -17,6 +17,15 @@ namespace Components {
             }]);
         });
         return new MessageActionRow().addComponents(chooseGuildMenu);
+    }
+
+    const optionList: (MessageSelectOptionData & { rank: string })[] = [
+        { rank: "Manager", label: "Delete", description: "Delete the question", value: "question-del" }
+    ];
+    export function manageQuestionMenu() {
+        const manageQuestionMenu = new MessageSelectMenu().setCustomId('channel-mng').setPlaceholder('Choose an option');
+        manageQuestionMenu.addOptions(optionList.filter(o => o.rank === "Manager"));
+        return new MessageActionRow().addComponents(manageQuestionMenu);
     }
 
     export function chooseToBeAnonymousButtons() {

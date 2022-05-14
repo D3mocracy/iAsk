@@ -17,9 +17,19 @@ namespace Embeds {
         return msg;
     }
 
+    export function questionManageMessage(channelId: string) {
+        const msg = new MessageEmbed({
+            title: "Management CP",
+            description: "Please choose one of the options down below.",
+            footer: { text: `${Config.channelIDFooter} ${channelId}` }
+        });
+        return msg;
+    }
+
+
     export const worngUsageManageMsg = new MessageEmbed({
         title: "Wrong Usage",
-        description: `Use like: ${Config.managePrefix} [${Config.manageMember} / ${Config.manageQuestion}] [id]`
+        description: `Use like: ${Config.managePrefix} [${Config.manageMember} / ${Config.manageChannel}] [id]`
     })
 }
 

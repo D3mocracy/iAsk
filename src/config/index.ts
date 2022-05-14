@@ -77,10 +77,19 @@ class Config {
     static readonly managePrefix: string = "!manage";
 
     @configurable()
-    static readonly manageQuestion: string = "question";
+    static readonly manageChannel: string = "channel";
 
     @configurable()
     static readonly manageMember: string = "member";
+
+    @configurable()
+    static readonly channelIDFooter: string = "Channel ID:";
+
+    @configurable()
+    static readonly cantFindMessageError: string = "Error: can't find this channel.";
+
+    @configurable()
+    static readonly cantDeleteMessageError: string = "Error: can't delete this channel.";
 }
 
 export default Config;

@@ -26,8 +26,8 @@ class OpenQuestionHandler {
     }
 
     async isReachedLimit() {
-        const qList = await DataBase.questionsCollection.find({ authorId: this.user.id, guildId: this.question.guildId }).toArray();
-        return qList.length === Config.maxQuestionsPerGuild + 1;
+        const qList = await DataBase.questionsCollection.find({ authorId: this.user.id, guildId: this.question.guildId, deleted: false }).toArray();
+        return qList.length === Config.maxQuestionsPerGuild;
     }
 
     async chooseGuild(guildId: string) {
@@ -62,11 +62,16 @@ class OpenQuestionHandler {
         const guild = await this.bot.guilds.fetch(this.question.guildId);
         const guildChannel = await guild.channels.create(this.question.title || "Error 404", { type: "GUILD_TEXT" });
         this.question.channelId = guildChannel.id;
+        await this.channel.send({ embeds: [Embeds.questionMessage(this.question.title || "Error 404", this.question.description || "Error 404", this.question.anonymous ? "Anonymous" : `${this.user.tag}`, this.question.channelId)] })
         await guildChannel.send({ embeds: [Embeds.questionMessage(this.question.title || "Error 404", this.question.description || "Error 404", this.question.anonymous ? "Anonymous" : `${this.user.tag}`, this.question.channelId)] });
     }
 
     get questionObject() {
         return this.question;
+    }
+
+    static async checkIfUserHasQuestionOnDB(user: User) {
+        return !!(await DataBase.questionsCollection.findOne({ authorId: user.id, channelId: { $exists: 0 }, deleted: false }) as any);
     }
 
     async save() {
@@ -78,7 +83,7 @@ class OpenQuestionHandler {
     }
 
     async load() {
-        this.question = (await DataBase.questionsCollection.findOne({ authorId: this.user.id, channelId: { $exists: 0 } }) as any) || this.question;
+        this.question = (await DataBase.questionsCollection.findOne({ authorId: this.user.id, channelId: { $exists: 0 }, deleted: false }) as any) || this.question;
     }
 }
 
