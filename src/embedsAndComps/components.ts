@@ -8,7 +8,7 @@ namespace Components {
     export function chooseGuildMenu(bot: Client, user: User) {
         const chooseGuildMenu = new MessageSelectMenu().setCustomId('choose-guild').setPlaceholder(Config.chooseGuildEmbedMessagePlaceHolder);
 
-        Utils.commonGuilds(bot, user).forEach(g => {
+        Utils.commonGuildCheck(bot, user).forEach(g => {
             chooseGuildMenu.addOptions([{
                 label: g.name,
                 description: g.description || g.name,
@@ -19,7 +19,7 @@ namespace Components {
         return new MessageActionRow().addComponents(chooseGuildMenu);
     }
 
-    const optionList: (MessageSelectOptionData & { rank: string })[] = [
+    const channelOptionList: (MessageSelectOptionData & { rank: string })[] = [
         { rank: "Manager", label: "Delete", description: "Delete the question", value: "question-del" },
         { rank: "Manager", label: "Lock", description: "Lock the question", value: "question-lock" },
         { rank: "Manager", label: "Unlock", description: "Unlock the question", value: "question-unlock" },
@@ -29,7 +29,7 @@ namespace Components {
     ];
     export function manageQuestionMenu() {
         const manageQuestionMenu = new MessageSelectMenu().setCustomId('channel-mng').setPlaceholder('Choose an option');
-        manageQuestionMenu.addOptions(optionList.filter(o => o.rank === "Manager"));
+        manageQuestionMenu.addOptions(channelOptionList.filter(o => o.rank === "Manager"));
         return new MessageActionRow().addComponents(manageQuestionMenu);
     }
 
@@ -55,6 +55,21 @@ namespace Components {
         const changeDetailsMenu = new MessageSelectMenu().setCustomId('change-dtl').setPlaceholder('Choose an option');
         changeDetailsMenu.addOptions(detailsOptionList)
         return new MessageActionRow().addComponents(changeDetailsMenu);
+    }
+
+    const memberOptionList: (MessageSelectOptionData & { rank: string })[] = [
+        { rank: "Manager", label: "Kick", description: "Kicks member out of the server", value: "mbr-kick" },
+        { rank: "Manager", label: "Ban", description: "Bans member out of the server", value: "mbr-ban" },
+        { rank: "Manager", label: "Block", description: "Opens block system", value: "mbr-block" },
+        { rank: "Manager", label: "Notes", description: "Opens note system", value: "mbr-note" },
+        { rank: "Manager", label: "Management Message", description: "Send management message to member", value: "mbr-management-msg" },
+        { rank: "Manager", label: "Rank System", description: "Opens rank system", value: "mbr-rank" },
+    ];
+
+    export function memberManagementMenu() {
+        const memberManagementMenu = new MessageSelectMenu().setCustomId('mbr-mng').setPlaceholder('Choose an option');
+        memberManagementMenu.addOptions(memberOptionList.filter(o => o.rank === "Manager"));
+        return new MessageActionRow().addComponents(memberManagementMenu);
     }
 }
 

@@ -47,7 +47,8 @@ client.on("messageCreate", async message => {
                     await message.reply({ embeds: [Embeds.questionManageMessage(args[2])], components: [Components.manageQuestionMenu()] });
 
                 } else if (args[1] === Config.manageMember) { //if choose to manage user
-
+                    await message.reply()
+                    // await message.reply({ embeds: [Embeds.memberManageMessage(args[2])], components: [Components.memberManagementMenu()] })
                 } else {
                     await message.channel.send({ embeds: [Embeds.worngUsageManageMsg] });
                 }
@@ -132,6 +133,10 @@ client.on('interactionCreate', async interaction => {
             }
             await manageQuestionHandler.save();
             interaction.update({ components: [Components.changeDetails()] });
+
+        } else if (interaction.customId === "mbr-mng") {
+
+
         }
 
     } else if (interaction.isButton()) {
