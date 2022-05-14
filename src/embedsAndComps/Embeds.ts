@@ -19,9 +19,18 @@ namespace Embeds {
 
     export function questionManageMessage(channelId: string) {
         const msg = new MessageEmbed({
-            title: "Management CP",
+            title: "Management CP - Channel Edition",
             description: "Please choose one of the options down below.",
             footer: { text: `${Config.channelIDFooter} ${channelId}` }
+        });
+        return msg;
+    }
+
+    export function memberManageMessage(memberId: string) {
+        const msg = new MessageEmbed({
+            title: "Management CP - Member Edition",
+            description: "Please choose one of the options down below.",
+            footer: { text: `${Config.memberIDFooter} ${memberId}` }
         });
         return msg;
     }

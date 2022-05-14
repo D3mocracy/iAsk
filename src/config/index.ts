@@ -86,6 +86,9 @@ class Config {
     static readonly channelIDFooter: string = "Channel ID:";
 
     @configurable()
+    static readonly memberIDFooter: string = "Member ID:";
+
+    @configurable()
     static readonly cantFindMessageError: string = "Error: can't find this channel.";
 
     @configurable()

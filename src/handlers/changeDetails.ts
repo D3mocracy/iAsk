@@ -21,7 +21,7 @@ class ChangeDetailsHandler {
     }
 
     async load() {
-        this.detailManager = await DataBase.managementCollection.findOne({ managerId: this.managerId }) as any;
+        this.detailManager = await DataBase.detailsManagementCollection.findOne({ managerId: this.managerId }) as any;
         this.question = await DataBase.questionsCollection.findOne({ channelId: this.detailManager.channelId, deleted: false }) as any;
         this.guild = this.bot.guilds.cache.get(this.question.guildId as string) as Guild;
         this.channel = this.guild.channels.cache.get(this.question.channelId as string) as TextChannel;
@@ -29,11 +29,11 @@ class ChangeDetailsHandler {
 
     async save() {
         await DataBase.questionsCollection.updateOne({ channelId: this.detailManager.channelId }, { $set: this.question }, { upsert: true });
-        await DataBase.managementCollection.updateOne({ managerId: this.managerId }, { $set: this.detailManager }, { upsert: true });
+        await DataBase.detailsManagementCollection.updateOne({ managerId: this.managerId }, { $set: this.detailManager }, { upsert: true });
     }
 
     async exit() {
-        await DataBase.managementCollection.deleteOne({ managerId: this.managerId })
+        await DataBase.detailsManagementCollection.deleteOne({ managerId: this.managerId })
     }
 
     async sendNewQuestionMessage() {
@@ -61,7 +61,7 @@ class ChangeDetailsHandler {
     }
 
     static async checkIfUserIsManagingDetail(user: User) {
-        return await DataBase.managementCollection.findOne({ managerId: user.id });
+        return await DataBase.detailsManagementCollection.findOne({ managerId: user.id });
     }
 
     get manageObject() {

@@ -98,7 +98,7 @@ class ManageQuestionHandler {
             "change-title": "Please type a new title",
             "change-description": "Please type a new description",
         }
-        await DataBase.managementCollection.updateOne({ managerId: this.sender.id }, { $set: { status: detail, channelId: this.questionChannelId } }, { upsert: true });
+        await DataBase.detailsManagementCollection.updateOne({ managerId: this.sender.id }, { $set: { status: detail, channelId: this.questionChannelId } }, { upsert: true });
         this.dmChannel.send(messages[detail]);
 
     }

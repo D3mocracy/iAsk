@@ -9,7 +9,8 @@ class DataBase {
         await DataBase.client.connect();
     }
     static questionsCollection = DataBase.client.db("iAskBot").collection("Questions");
-    static managementCollection = DataBase.client.db("iAskBot").collection("Management");
+    static detailsManagementCollection = DataBase.client.db("iAskBot").collection("DetailsManagement");
+    static memberManagementCollection = DataBase.client.db("iAskBot").collection("MemberManagement");
 }
 
 export default DataBase;

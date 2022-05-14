@@ -20,3 +20,10 @@ export type ManagementDetails = {
     status: string,
     channelId: string,
 }
+
+export type Action = {
+    managerId: string,
+    memberId: string,
+    guildId: string,
+    actionName: string,
+}
