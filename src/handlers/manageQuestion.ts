@@ -1,8 +1,10 @@
-import { Client, DMChannel, GuildMember, TextChannel, User } from "discord.js";
+import { Client, DMChannel, GuildMember, Role, TextChannel, User } from "discord.js";
 import DataBase from "../db";
 import { Question } from "../types";
 import { MissingGuildIdError, UnknownChannel } from "../error"
 import Config from "../config";
+import Embeds from "../embedsAndComps/Embeds";
+import Components from "../embedsAndComps/components";
 
 class ManageQuestionHandler {
     private question: Question = {} as any;
@@ -41,6 +43,35 @@ class ManageQuestionHandler {
         } else {
             return;
         }
+    }
+
+    async lockQuestion() {
+        if (!this.question.lock) {
+            this.question.lock = true;
+            await this.questionChannel.send({ embeds: [Embeds.lockQuestion] });
+            let guild = await this.bot.guilds.fetch(this.questionChannel.guildId);
+            await this.questionChannel.permissionOverwrites.create(guild.roles.everyone, { SEND_MESSAGES: false });
+        } else {
+            await this.dmChannel.send("Question is already locked")
+            return;
+        }
+    }
+
+    async unlockQuestion() {
+        if (this.question.lock) {
+            this.question.lock = false;
+            await this.questionChannel.send({ embeds: [Embeds.unlockQuestion] });
+            let guild = await this.bot.guilds.fetch(this.questionChannel.guildId);
+            await this.questionChannel.permissionOverwrites.create(guild.roles.everyone, { SEND_MESSAGES: true });
+        } else {
+            await this.dmChannel.send("Question is already unlocked")
+            return;
+        }
+    };
+
+    async revealUserTag() {
+        const memberTag = (await (await this.bot.guilds.fetch(this.question.guildId as string)).members.fetch(this.question.authorId)).user.tag;
+        await this.dmChannel.send(`The user is ${memberTag}`)
     }
 }
 

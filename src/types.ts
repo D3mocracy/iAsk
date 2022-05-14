@@ -12,4 +12,5 @@ export type Question = {
     description?: string,
     anonymous?: boolean,
     channelId?: string,
+    lock?: boolean,
 }

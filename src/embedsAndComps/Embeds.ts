@@ -30,7 +30,19 @@ namespace Embeds {
     export const worngUsageManageMsg = new MessageEmbed({
         title: "Wrong Usage",
         description: `Use like: ${Config.managePrefix} [${Config.manageMember} / ${Config.manageChannel}] [id]`
-    })
+    });
+
+    export const lockQuestion = new MessageEmbed({
+        title: "Locked",
+        description: "Question is now locked",
+        color: "RED"
+    });
+
+    export const unlockQuestion = new MessageEmbed({
+        title: "Unlocked",
+        description: "Question is now unlocked",
+        color: "GREEN"
+    });
 }
 
 export default Embeds;

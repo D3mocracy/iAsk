@@ -84,6 +84,7 @@ client.on('interactionCreate', async interaction => {
             await interaction.channel?.send(Config.chooseTitleMessage);
             await interaction.update({ content: `Your choice is ${(interaction as SelectMenuInteraction).values[0]}`, embeds: [], components: [] });
 
+
         } else if (interaction.customId === "channel-mng") {
 
             const managedChannelId: string = (interaction as SelectMenuInteraction).message.embeds[0].footer?.text.replaceAll(`${Config.channelIDFooter} `, "") as any;
@@ -91,7 +92,12 @@ client.on('interactionCreate', async interaction => {
 
             if (!manageQuestionHandler) return;
 
-            const options: any = { "question-del": async () => await manageQuestionHandler.deleteQuestion() }
+            const options: any = {
+                "question-del": async () => manageQuestionHandler.deleteQuestion(),
+                "question-lock": async () => manageQuestionHandler.lockQuestion(),
+                "question-unlock": async () => manageQuestionHandler.unlockQuestion(),
+                "question-reveal": async () => manageQuestionHandler.revealUserTag(),
+            }
 
             await options[interaction.values[0]]();
             await manageQuestionHandler.save();

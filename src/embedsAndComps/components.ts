@@ -20,7 +20,10 @@ namespace Components {
     }
 
     const optionList: (MessageSelectOptionData & { rank: string })[] = [
-        { rank: "Manager", label: "Delete", description: "Delete the question", value: "question-del" }
+        { rank: "Manager", label: "Delete", description: "Delete the question", value: "question-del" },
+        { rank: "Manager", label: "Lock", description: "Lock the question", value: "question-lock" },
+        { rank: "Manager", label: "Unlock", description: "Unlock the question", value: "question-unlock" },
+        { rank: "Manager", label: "Reveal", description: "Reveal the user tag", value: "question-reveal" },
     ];
     export function manageQuestionMenu() {
         const manageQuestionMenu = new MessageSelectMenu().setCustomId('channel-mng').setPlaceholder('Choose an option');
