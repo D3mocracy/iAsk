@@ -5,10 +5,24 @@ import Utils from "../utils";
 
 namespace Components {
 
-    export function chooseGuildMenu(bot: Client, user: User) {
-        const chooseGuildMenu = new MessageSelectMenu().setCustomId('choose-guild').setPlaceholder(Config.chooseGuildEmbedMessagePlaceHolder);
+    export function chooseGuildMenuOpenQuestion(bot: Client, user: User) {
+        const chooseGuildMenu = new MessageSelectMenu().setCustomId('choose-guild-open-question').setPlaceholder(Config.chooseGuildEmbedMessagePlaceHolder);
 
         Utils.commonGuildCheck(bot, user).forEach(g => {
+            chooseGuildMenu.addOptions([{
+                label: g.name,
+                description: g.description || g.name,
+                value: g.id,
+                emoji: Config.chooseGuildEmbedMessageEmoji
+            }]);
+        });
+        return new MessageActionRow().addComponents(chooseGuildMenu);
+    }
+
+    export function chooseGuildMenuManageMember(bot: Client, ...user: User[]) {
+        const chooseGuildMenu = new MessageSelectMenu().setCustomId('choose-guild-manage-member').setPlaceholder(Config.chooseGuildEmbedMessagePlaceHolder);
+
+        Utils.commonGuildCheck(bot, ...user).forEach(g => {
             chooseGuildMenu.addOptions([{
                 label: g.name,
                 description: g.description || g.name,
@@ -70,6 +84,34 @@ namespace Components {
         const memberManagementMenu = new MessageSelectMenu().setCustomId('mbr-mng').setPlaceholder('Choose an option');
         memberManagementMenu.addOptions(memberOptionList.filter(o => o.rank === "Manager"));
         return new MessageActionRow().addComponents(memberManagementMenu);
+    }
+
+    const memberBlockOptionList: (MessageSelectOptionData & { rank: string })[] = [
+        { rank: "Manager", label: "3 Hours", description: "Block the member for 3 hours", value: "block-3h" },
+        { rank: "Manager", label: "1 Day", description: "Block the member for 1 day", value: "block-1d" },
+        { rank: "Manager", label: "3 Days", description: "Block the member for 3 days", value: "block-3d" },
+        { rank: "Manager", label: "1 Week", description: "Block the member for 1 week", value: "block-1w" },
+        { rank: "Manager", label: "1 Month", description: "Block the member for 1 month", value: "block-1m" },
+        { rank: "Manager", label: "Unblock", description: "Unblock the member", value: "block-unblock" },
+    ];
+
+    export function memberBlockMenu() {
+        const memberBlockMenu = new MessageSelectMenu().setCustomId('block-mbr').setPlaceholder("For how long?");
+        memberBlockMenu.addOptions(memberBlockOptionList.filter(o => o.rank === "Manager"));
+        return new MessageActionRow().addComponents(memberBlockMenu);
+    };
+
+    const memberNoteOptionList: (MessageSelectOptionData & { rank: string })[] = [
+        { rank: "Manager", label: "Add Note", description: "Add note to member.", value: "note-add" },
+        { rank: "Manager", label: "Remove Note", description: "Remove note from member.", value: "note-remove" },
+        { rank: "Manager", label: "Show Notes", description: "Show all member notes.", value: "note-show" },
+        { rank: "Manager", label: "Reset All Notes", description: "Delete all member notes.", value: "note-reset" },
+    ];
+
+    export function memberNoteMenu() {
+        const memberNoteMenu = new MessageSelectMenu().setCustomId('note-mbr').setPlaceholder("Choose action");
+        memberNoteMenu.addOptions(memberNoteOptionList.filter(o => o.rank === "Manager"));
+        return new MessageActionRow().addComponents(memberNoteMenu);
     }
 }
 

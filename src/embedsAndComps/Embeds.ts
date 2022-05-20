@@ -2,9 +2,14 @@ import { MessageEmbed } from "discord.js";
 import Config from "../config";
 
 namespace Embeds {
-    export const chooseGuild = new MessageEmbed({
-        title: Config.chooseGuildEmbedMessageTitle,
-        color: Config.chooseGuildEmbedMessageColor
+    export const chooseGuildOpenQuestion = new MessageEmbed({
+        title: Config.chooseGuildEmbedMessageTitleOpenQuestion,
+        color: Config.chooseGuildEmbedMessageColorOpenQuesiton
+    });
+
+    export const chooseGuildManageMember = new MessageEmbed({
+        title: Config.chooseGuildEmbedMessageTitleOpenQuestion,
+        color: Config.chooseGuildEmbedMessageColorOpenQuesiton
     });
 
     export function questionMessage(title: string, description: string, tag: string, channelId?: string) {
@@ -30,6 +35,24 @@ namespace Embeds {
         const msg = new MessageEmbed({
             title: "Management CP - Member Edition",
             description: "Please choose one of the options down below.",
+            footer: { text: `${Config.memberIDFooter} ${memberId}` }
+        });
+        return msg;
+    }
+
+    export function blockMemberMessage(memberId: string) {
+        const msg = new MessageEmbed({
+            title: "Block Member",
+            description: "Block will disable the member from using the bot and from commenting on the server.",
+            footer: { text: `${Config.memberIDFooter} ${memberId}` }
+        });
+        return msg;
+    }
+
+    export function noteMemberMessage(memberId: string) {
+        const msg = new MessageEmbed({
+            title: "Note System",
+            description: "Note system is for managers.",
             footer: { text: `${Config.memberIDFooter} ${memberId}` }
         });
         return msg;

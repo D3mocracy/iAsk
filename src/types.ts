@@ -1,4 +1,4 @@
-import { Guild } from "discord.js"
+import { Guild, User } from "discord.js"
 import { ObjectId } from "mongodb"
 
 export type Question = {
@@ -24,6 +24,6 @@ export type ManagementDetails = {
 export type Action = {
     managerId: string,
     memberId: string,
-    guildId: string,
-    actionName: string,
+    guildId?: string,
+    actionName?: string,
 }

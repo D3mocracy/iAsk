@@ -23,7 +23,7 @@ class OpenQuestionHandler {
     async iHaveAQuestion() {
         this.question.started = true;
         this.question.lock = false;
-        await this.channel.send({ embeds: [Embeds.chooseGuild], components: [Components.chooseGuildMenu(this.bot, this.user)] });
+        await this.channel.send({ embeds: [Embeds.chooseGuildOpenQuestion], components: [Components.chooseGuildMenuOpenQuestion(this.bot, this.user)] });
     }
 
     async isReachedLimit() {

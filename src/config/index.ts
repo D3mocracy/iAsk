@@ -33,10 +33,10 @@ class Config {
     static readonly chooseGuildEmbedMessageEmoji: string = "🔳";
 
     @configurable()
-    static readonly chooseGuildEmbedMessageTitle: string = "Please choose the guild from the one of the options below";
+    static readonly chooseGuildEmbedMessageTitleOpenQuestion: string = "Please choose the guild from the one of the options below";
 
     @configurable()
-    static readonly chooseGuildEmbedMessageColor: ColorResolvable = "DARK_VIVID_PINK";
+    static readonly chooseGuildEmbedMessageColorOpenQuesiton: ColorResolvable = "DARK_VIVID_PINK";
 
     @configurable()
     static readonly chooseTitleMessage: string = "Please write a title";

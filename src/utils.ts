@@ -6,8 +6,17 @@ namespace Utils {
     }
 
     export function commonGuildCheck(bot: Client, ...users: User[]) {
-        return bot.guilds.cache.filter((g: Guild) => !!g.members.cache.filter(m => users.includes(m.user)))
+        return bot.guilds.cache.filter((g: Guild) => !!g.members.cache.filter(m => users.includes(m.user)));
+    }
 
+    export function convertIDtoUser(bot: Client, userId: string) {
+        return bot.users.cache.get(userId);
+    }
+
+    export function convertIDtoMemberFromGuild(bot: Client, memberId: string, guildId: string) {
+        const guild = bot.guilds.cache.get(guildId);
+        if (!guild) return;
+        return guild.members.cache.get(memberId);
     }
 
 }
