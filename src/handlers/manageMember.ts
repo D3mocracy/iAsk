@@ -40,8 +40,8 @@ class ManageMemberHanlder {
         this.action.guildId = guildId;
     }
 
-    async exit() {
-        await DataBase.memberManagementCollection.deleteOne({ managerId: this.manager.id });
+    static async exit(managerId: string) {
+        await DataBase.memberManagementCollection.deleteOne({ managerId });
     }
 
     async kickMember(interaction: SelectMenuInteraction) {
@@ -59,7 +59,7 @@ class ManageMemberHanlder {
     }
 
     async updateToBlockMenu(interaction: SelectMenuInteraction) {
-        await interaction.update({ embeds: [Embeds.blockMemberMessage(this.action.memberId)], components: [Components.memberBlockMenu()] });
+        await interaction.update({ embeds: [Embeds.blockMemberMessage(this.action.memberId, this.action.guildId as string)], components: [Components.memberBlockMenu()] });
     }
 
     async blockMember(interaction: SelectMenuInteraction) {
@@ -79,7 +79,11 @@ class ManageMemberHanlder {
     }
 
     async updateToNoteMenu(interaction: SelectMenuInteraction) {
-        await interaction.update({ embeds: [Embeds.noteMemberMessage(this.action.memberId)], components: [Components.memberNoteMenu()] });
+        await interaction.update({ embeds: [Embeds.noteMemberMessage(this.action.memberId, this.action.guildId || "Guild Error")], components: [Components.memberNoteMenu()] });
+    }
+
+    async insertDetailsToNoteManagerHanlder(memberId: string, managerId: string, guildId: string) {
+        await DataBase.noteCollection.insertOne({ memberId, managerId, guildId });
     }
 }
 

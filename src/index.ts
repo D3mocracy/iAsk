@@ -1,14 +1,16 @@
 require("dotenv").config();
-import { ButtonInteraction, Client, Intents, SelectMenuInteraction, TextChannel } from "discord.js";
+import { ButtonInteraction, Client, Guild, Intents, SelectMenuInteraction, TextChannel, User } from "discord.js";
 import Config from "./config";
 import DataBase from "./db";
 import Components from "./embedsAndComps/components";
 import Embeds from "./embedsAndComps/Embeds";
 import ChangeDetailsHandler from "./handlers/changeDetails";
 import ManageMemberHanlder from "./handlers/manageMember";
+import NewNoteHandler from "./handlers/newNote";
 import ManageQuestionHandler from "./handlers/manageQuestion";
 import OpenQuestionHandler from "./handlers/openQuestion";
 import Utils from "./utils";
+import NoteManageHanlder from "./handlers/noteManage";
 const client: Client = new Client({ partials: ["CHANNEL"], intents: new Intents(32767) });
 
 
@@ -23,6 +25,14 @@ client.on("messageCreate", async message => {
 
         if (Utils.commonGuildCheck(client, message.author).size === 0) {
             await message.channel.send(Config.error404);
+            return;
+        }
+
+        if (await NewNoteHandler.isAddingNote(message.author.id)) {
+            const managerNoteHandler = await NewNoteHandler.createHandler(message.author);
+            managerNoteHandler.setNoteContent(message);
+            await managerNoteHandler.save();
+            await ManageMemberHanlder.exit(message.author.id);
             return;
         }
 
@@ -111,7 +121,7 @@ client.on('interactionCreate', async interaction => {
             const manageMemberHanlder = await ManageMemberHanlder.createHandler(client, interaction.user, memberId);
             await manageMemberHanlder.chooseGuild(interaction.values[0]);
             await manageMemberHanlder.save();
-            await interaction.update({ embeds: [Embeds.memberManageMessage(memberId)], components: [Components.memberManagementMenu()] });
+            await interaction.update({ embeds: [Embeds.memberManageMessage(memberId, interaction.values[0])], components: [Components.memberManagementMenu()] });
         } else if (interaction.customId === "channel-mng") {
 
             const managedChannelId: string = (interaction as SelectMenuInteraction).message.embeds[0].footer?.text.replaceAll(`${Config.channelIDFooter} `, "") as any;
@@ -163,6 +173,28 @@ client.on('interactionCreate', async interaction => {
             const memberId = await ManageMemberHanlder.getMemberIdFromDB(interaction.user);
             const manageMemberHanlder = await ManageMemberHanlder.createHandler(client, interaction.user, memberId);
             await manageMemberHanlder.blockMember(interaction);
+
+        } else if (interaction.customId === "note-mbr") {
+            const memberId: string = (interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === Config.memberIDFooter)?.value as string;
+            const guildId: string = (interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === "Guild ID:")?.value as string;
+            const manageMemberHanlder = await ManageMemberHanlder.createHandler(client, interaction.user, Utils.convertIDtoUser(client, memberId) as User);
+            const newNoteHandler = await NewNoteHandler.createHandler(interaction.user, interaction);
+            const noteManageHanlder = await NoteManageHanlder.createHanlder(interaction.user.id, memberId, guildId);
+
+            const options: any = {
+                "note-add": async () => { newNoteHandler.addNote() },
+                "note-remove": async () => { noteManageHanlder.updateToRemoveNotesMessage(interaction) },
+                "note-reset": async () => { NoteManageHanlder.resetAllNotes(interaction) },
+                "note-show": async () => { NoteManageHanlder.sendShowAllNotesMessage(interaction) }
+            }
+            await options[interaction.values[0]]();
+            await newNoteHandler.save();
+
+        } else if (interaction.customId === "remove-notes") {
+            const memberId: string = (interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === Config.memberIDFooter)?.value as string;
+            const guildId: string = (interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === "Guild ID:")?.value as string;
+            const noteManageHanlder = await NoteManageHanlder.createHanlder(interaction.user.id, memberId, guildId);
+            //להוסיף את אינטרקשן פשוט לנוט מנגר במקום כל פעם לקבל את זה כי גם ככה אתה לא משתמש פה באיוונט של הודעה
         }
 
     } else if (interaction.isButton()) {

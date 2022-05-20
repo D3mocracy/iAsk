@@ -25,5 +25,12 @@ export type Action = {
     managerId: string,
     memberId: string,
     guildId?: string,
-    actionName?: string,
+}
+
+export type Note = {
+    managerId: string,
+    memberId: string,
+    guildId: string,
+    content?: string,
+    _id?: ObjectId,
 }

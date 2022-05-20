@@ -31,30 +31,47 @@ namespace Embeds {
         return msg;
     }
 
-    export function memberManageMessage(memberId: string) {
+    export function memberManageMessage(memberId: string, guildId: string) {
         const msg = new MessageEmbed({
             title: "Management CP - Member Edition",
             description: "Please choose one of the options down below.",
-            footer: { text: `${Config.memberIDFooter} ${memberId}` }
-        });
+        }).addFields([
+            { name: "Guild ID:", value: guildId },
+            { name: Config.memberIDFooter, value: memberId }
+        ]);
         return msg;
     }
 
-    export function blockMemberMessage(memberId: string) {
+    export function blockMemberMessage(memberId: string, guildId: string) {
         const msg = new MessageEmbed({
             title: "Block Member",
             description: "Block will disable the member from using the bot and from commenting on the server.",
-            footer: { text: `${Config.memberIDFooter} ${memberId}` }
-        });
+        }).addFields([
+            { name: "Guild ID:", value: guildId },
+            { name: Config.memberIDFooter, value: memberId }
+        ]);
         return msg;
     }
 
-    export function noteMemberMessage(memberId: string) {
+    export function noteMemberMessage(memberId: string, guildId: string) {
         const msg = new MessageEmbed({
             title: "Note System",
             description: "Note system is for managers.",
-            footer: { text: `${Config.memberIDFooter} ${memberId}` }
-        });
+        }).addFields([
+            { name: "Guild ID:", value: guildId },
+            { name: Config.memberIDFooter, value: memberId }
+        ])
+        return msg;
+    }
+
+    export function choseNoteToRemove(memberId: string, guildId: string) {
+        const msg = new MessageEmbed({
+            title: "Choose A Note To **Remove**",
+            color: "RED",
+        }).addFields([
+            { name: "Guild ID:", value: guildId },
+            { name: Config.memberIDFooter, value: memberId }
+        ])
         return msg;
     }
 
