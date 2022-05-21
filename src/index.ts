@@ -1,5 +1,5 @@
 require("dotenv").config();
-import { ButtonInteraction, Client, Guild, Intents, SelectMenuInteraction, TextChannel, User } from "discord.js";
+import { ButtonInteraction, Client, DMChannel, Guild, Intents, SelectMenuInteraction, TextChannel, User } from "discord.js";
 import Config from "./config";
 import DataBase from "./db";
 import Components from "./embedsAndComps/components";
@@ -11,6 +11,7 @@ import ManageQuestionHandler from "./handlers/manageQuestion";
 import OpenQuestionHandler from "./handlers/openQuestion";
 import Utils from "./utils";
 import NoteManageHanlder from "./handlers/noteManage";
+import ManagementMessageHanlder from "./handlers/managementMessage";
 const client: Client = new Client({ partials: ["CHANNEL"], intents: new Intents(32767) });
 
 
@@ -23,7 +24,7 @@ client.on("messageCreate", async message => {
     if (message.channel.type === "DM" && message.author != client.user) {
         const args = message.content.split(" ");
 
-        if (Utils.commonGuildCheck(client, message.author).size === 0) {
+        if (Utils.commonGuildCheck(client, message.author).length === 0) {
             await message.channel.send(Config.error404);
             return;
         }
@@ -33,6 +34,13 @@ client.on("messageCreate", async message => {
             managerNoteHandler.setNoteContent(message);
             await managerNoteHandler.save();
             await ManageMemberHanlder.exit(message.author.id);
+            return;
+        }
+
+        if (await ManagementMessageHanlder.isWritingManageMessage(message.author.id)) {
+            const managementMessageHandler = await ManagementMessageHanlder.createHandler(message.author, client);
+            await managementMessageHandler.setContent(message.content, message.channel as DMChannel);
+            await managementMessageHandler.save();
             return;
         }
 
@@ -99,8 +107,8 @@ client.on("messageCreate", async message => {
 });
 
 client.on('interactionCreate', async interaction => {
-    if (interaction.isSelectMenu()) {
 
+    if (interaction.isSelectMenu()) {
         if (interaction.customId === "choose-guild-open-question") {
             const openQuestionHandler = await OpenQuestionHandler.createHandler(client, interaction.user, interaction.channel);
 
@@ -162,7 +170,7 @@ client.on('interactionCreate', async interaction => {
                 "mbr-ban": async () => manageMemberHanlder.banMember(interaction),
                 "mbr-block": async () => manageMemberHanlder.updateToBlockMenu(interaction),
                 "mbr-note": async () => manageMemberHanlder.updateToNoteMenu(interaction),
-                // "mbr-management-msg": async () => manageMemberHanlder.logQuestion(),
+                "mbr-management-msg": async () => manageMemberHanlder.insertDetailsToManagementMessageHandler(interaction),
                 // "mbr-rank": async () => manageMemberHanlder.chooseChangeDetail(),
             }
 
@@ -195,6 +203,13 @@ client.on('interactionCreate', async interaction => {
         }
 
     } else if (interaction.isButton()) {
+        if (interaction.customId === "mng-msg-yes" || interaction.customId === "mng-msg-no") {
+            const managementMessageHandler = await ManagementMessageHanlder.createHandler(interaction.user, client);
+            await managementMessageHandler.manageMessageDealer(interaction);
+
+            await managementMessageHandler.save();
+            return;
+        }
         const openQuestionHandler = await OpenQuestionHandler.createHandler(client, interaction.user, interaction.channel);
         if (openQuestionHandler.questionObject.anonymous === undefined) {
             await openQuestionHandler.chooseAnonymous(interaction.customId === "anon-yes");

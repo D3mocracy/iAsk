@@ -1,4 +1,4 @@
-import { MessageEmbed } from "discord.js";
+import { Guild, MessageEmbed } from "discord.js";
 import Config from "../config";
 
 namespace Embeds {
@@ -75,6 +75,19 @@ namespace Embeds {
         return msg;
     }
 
+    export function managementMessage(guild: Guild, description: string) {
+        const msg = new MessageEmbed({
+            title: "Management Message",
+            description,
+            author: { name: "iAsk Management", iconURL: "https://i.imgur.com/I7EoZkF.png" },
+            footer: { text: `This message sent from ${guild.name} guild by an administrator.` }
+        })
+        // .addFields([
+        //     { name: "Guild ID:", value: guild.id },
+        //     { name: Config.memberIDFooter, value: memberId }
+        // ]);
+        return msg;
+    }
 
     export const worngUsageManageMsg = new MessageEmbed({
         title: "Wrong Usage",
@@ -101,6 +114,8 @@ namespace Embeds {
             footer: { text: `${Config.channelIDFooter} ${channelId}` }
         });
     }
+
+
 
 }
 

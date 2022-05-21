@@ -35,3 +35,13 @@ export type Note = {
     deleted: boolean,
     _id?: ObjectId,
 }
+
+export type ManageMSG = {
+    managerId: string,
+    memberId: string,
+    guildId: string,
+    content?: string,
+    sent: boolean,
+    deleted: boolean,
+    _id?: boolean,
+}

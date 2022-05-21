@@ -1,4 +1,4 @@
-import { Client, Guild, GuildMember, MessageActionRow, MessageButton, MessageSelectMenu, MessageSelectOptionData, User } from "discord.js";
+import { Client, Guild, GuildMember, MessageActionRow, MessageButton, MessageSelectMenu, MessageSelectOptionData, User, Util } from "discord.js";
 import Config from "../config";
 import OpenQuestionHandler from "../handlers/openQuestion";
 import { Note } from "../types";
@@ -57,6 +57,12 @@ namespace Components {
     export function chooseSureMessage() {
         const yesButton = new MessageButton().setCustomId("sure-yes").setLabel(Config.yesSureButton).setStyle("SUCCESS");
         const noButton = new MessageButton().setCustomId("sure-no").setLabel(Config.noSureButton).setStyle("DANGER");
+        return new MessageActionRow().addComponents(yesButton, noButton);
+    }
+
+    export function chooseSureManagementMessage() {
+        const yesButton = new MessageButton().setCustomId("mng-msg-yes").setLabel(Config.yesSureButton).setStyle("SUCCESS");
+        const noButton = new MessageButton().setCustomId("mng-msg-no").setLabel(Config.noSureButton).setStyle("DANGER");
         return new MessageActionRow().addComponents(yesButton, noButton);
     }
 

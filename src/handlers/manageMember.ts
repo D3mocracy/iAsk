@@ -33,7 +33,12 @@ class ManageMemberHanlder {
         this.action = { managerId: this.manager.id, memberId: this.member.id }
         const user = Utils.convertIDtoUser(this.bot, this.member.id);
         if (!user) return;
-        await channel.send({ embeds: [Embeds.chooseGuildManageMember], components: [Components.chooseGuildMenuManageMember(this.bot, user, this.manager)] });
+        if (Utils.commonGuildCheck(this.bot, user, this.manager).length !== 0) {
+            await channel.send({ embeds: [Embeds.chooseGuildManageMember], components: [Components.chooseGuildMenuManageMember(this.bot, user, this.manager)] });
+        } else {
+            await channel.send("Error: can't find common guild between u 2, maybe you should invite him...")
+        }
+
     }
 
     async chooseGuild(guildId: string) {
@@ -84,6 +89,11 @@ class ManageMemberHanlder {
 
     async insertDetailsToNoteManagerHanlder(memberId: string, managerId: string, guildId: string) {
         await DataBase.noteCollection.insertOne({ memberId, managerId, guildId });
+    }
+
+    async insertDetailsToManagementMessageHandler(interaction: SelectMenuInteraction) {
+        await DataBase.managementMessageCollection.insertOne({ memberId: this.action.memberId, managerId: this.manager.id, guildId: this.action.guildId, sent: false, deleted: false });
+        await interaction.update({ content: "Type the message please", embeds: [], components: [] });
     }
 }
 
