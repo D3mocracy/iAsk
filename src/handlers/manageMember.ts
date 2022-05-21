@@ -95,6 +95,8 @@ class ManageMemberHanlder {
         await DataBase.managementMessageCollection.insertOne({ memberId: this.action.memberId, managerId: this.manager.id, guildId: this.action.guildId, sent: false, deleted: false });
         await interaction.update({ content: "Type the message please", embeds: [], components: [] });
     }
+
+
 }
 
 export default ManageMemberHanlder;

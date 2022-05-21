@@ -102,7 +102,14 @@ client.on("messageCreate", async message => {
             return;
         }
     } else if (message.channel.type === "GUILD_TEXT" && message.author != client.user) {
-
+        if (message.content === "!setup") {
+            await message.channel.sendTyping();
+            await message.channel.send({ content: "Oh, hello there little strager :D" });
+            await message.channel.sendTyping();
+            setTimeout(async () => {
+                await message.channel.send({ content: "I am registering you as the manager" });
+            }, 3000);
+        }
     }
 });
 

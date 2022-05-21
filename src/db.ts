@@ -13,6 +13,7 @@ class DataBase {
     static memberManagementCollection = DataBase.client.db("iAskBot").collection("MemberManagement");
     static noteCollection = DataBase.client.db("iAskBot").collection("Notes");
     static managementMessageCollection = DataBase.client.db("iAskBot").collection("ManagementMessage");
+    static configCollection = DataBase.client.db("iAskBot").collection("Config");
 }
 
 export default DataBase;
