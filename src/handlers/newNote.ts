@@ -59,8 +59,6 @@ class NewNoteHandler {
 
     async addNote() {
         if (!this.interaction || !this.interaction.channel) return;
-        // const guildId: string = (this.interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === "Guild ID:")?.value as string;
-        // const memberId: string = (this.interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === Config.memberIDFooter)?.value as string;
         this.note = { managerId: this.interaction.user.id, memberId: this.memberId, guildId: this.guildId, deleted: false }
         await this.interaction.channel.send("Please write the note you would like to add.")
         await this.interaction.update({ embeds: [Embeds.noteMemberMessage(this.note.memberId, this.note.guildId)], components: [Components.memberNoteMenu()] });

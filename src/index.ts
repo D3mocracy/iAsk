@@ -117,7 +117,7 @@ client.on('interactionCreate', async interaction => {
             await interaction.update({ content: `Your choice is ${(interaction as SelectMenuInteraction).values[0]}`, embeds: [], components: [] });
 
         } else if (interaction.customId === "choose-guild-manage-member") {
-            const memberId = await ManageMemberHanlder.getMemberIdFromDB(interaction.user);
+            const memberId = await ManageMemberHanlder.getMemberIdFromDBByManagerId(interaction.user);
             const manageMemberHanlder = await ManageMemberHanlder.createHandler(client, interaction.user, memberId);
             await manageMemberHanlder.chooseGuild(interaction.values[0]);
             await manageMemberHanlder.save();
@@ -154,7 +154,7 @@ client.on('interactionCreate', async interaction => {
             interaction.update({ components: [Components.changeDetails()] });
 
         } else if (interaction.customId === "mbr-mng") {
-            const memberId = await ManageMemberHanlder.getMemberIdFromDB(interaction.user);
+            const memberId = await ManageMemberHanlder.getMemberIdFromDBByManagerId(interaction.user);
             const manageMemberHanlder = await ManageMemberHanlder.createHandler(client, interaction.user, memberId);
 
             const options: any = {
@@ -170,7 +170,7 @@ client.on('interactionCreate', async interaction => {
             await manageMemberHanlder.save();
 
         } else if (interaction.customId === "block-mbr") {
-            const memberId = await ManageMemberHanlder.getMemberIdFromDB(interaction.user);
+            const memberId = await ManageMemberHanlder.getMemberIdFromDBByManagerId(interaction.user);
             const manageMemberHanlder = await ManageMemberHanlder.createHandler(client, interaction.user, memberId);
             await manageMemberHanlder.blockMember(interaction);
 
@@ -189,11 +189,9 @@ client.on('interactionCreate', async interaction => {
             }
             await options[interaction.values[0]]();
 
-
         } else if (interaction.customId === "remove-notes") {
             const noteManageHanlder = await NoteManageHanlder.createHanlder(interaction);
             noteManageHanlder.removeNote();
-            //להוסיף את אינטרקשן פשוט לנוט מנגר במקום כל פעם לקבל את זה כי גם ככה אתה לא משתמש פה באיוונט של הודעה
         }
 
     } else if (interaction.isButton()) {

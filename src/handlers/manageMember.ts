@@ -23,7 +23,7 @@ class ManageMemberHanlder {
         await DataBase.memberManagementCollection.updateOne({ managerId: this.manager.id }, { $set: this.action }, { upsert: true });
     }
 
-    static async getMemberIdFromDB(manager: User) {
+    static async getMemberIdFromDBByManagerId(manager: User) {
         const action = await DataBase.memberManagementCollection.findOne({ managerId: manager.id });
         if (!action) return;
         return action.memberId;

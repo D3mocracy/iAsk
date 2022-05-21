@@ -32,7 +32,7 @@ class NoteManageHanlder {
         const embed = new MessageEmbed({
             title: "Member Notes",
             description: this.notes.map((n, i) =>
-                `**${i}) ** ${n.content}`
+                `**${i + 1}) ** ${n.content}`
             ).join('\n')
         });
         await this.interaction.channel.send({ embeds: [embed] });
