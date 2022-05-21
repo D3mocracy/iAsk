@@ -7,65 +7,69 @@ import Embeds from "../embedsAndComps/Embeds";
 import { Note } from "../types";
 
 class NoteManageHanlder {
-    private note: Note = {} as Note;
-    private constructor(private managerId: string, private memberId: string, private guildId: string) { }
+    private notes: Note[] = [];
+    private managerId: string = "";
+    private memberId: string = "";
+    private guildId: string = "";
+    private constructor(private interaction: SelectMenuInteraction) { }
 
-    static async createHanlder(managerId: string, memberId: string, guildId: string) {
-        const handler = new NoteManageHanlder(managerId, memberId, guildId);
+    static async createHanlder(interaction: SelectMenuInteraction) {
+        const handler = new NoteManageHanlder(interaction);
         await handler.load();
         return handler;
     }
 
     async load() {
-        this.note = await DataBase.noteCollection.findOne({ managerId: this.managerId, memberId: this.memberId, guildId: this.guildId }) as any;
-    }
-
-    async save() {
-        await DataBase.noteCollection.updateOne({ _id: this.note._id }, { $set: this.note }, { upsert: true })
-    }
-
-    static async getAllNotes(interaction: SelectMenuInteraction) {
-        const guildId: string = (interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === "Guild ID:")?.value as string;
-        const memberId: string = (interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === Config.memberIDFooter)?.value as string;
-        return await DataBase.noteCollection.find({ memberId, guildId }).toArray();
+        this.memberId = (this.interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === Config.memberIDFooter)?.value as string;
+        this.managerId = this.interaction.user.id;
+        this.guildId = (this.interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === "Guild ID:")?.value as string;
+        this.notes = await DataBase.noteCollection.find({ managerId: this.managerId, memberId: this.memberId, guildId: this.guildId, deleted: false }).toArray() as any;
 
     }
 
-    static async sendShowAllNotesMessage(interaction: SelectMenuInteraction) {
-        const guildId: string = (interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === "Guild ID:")?.value as string;
-        const memberId: string = (interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === Config.memberIDFooter)?.value as string;
-        const notes = await DataBase.noteCollection.find({ memberId, guildId }).toArray();
-        if (!notes || !interaction.channel) return;
+    async sendShowAllNotesMessage() {
+        if (!this.notes || !this.interaction.channel) return;
         const embed = new MessageEmbed({
             title: "Member Notes",
-            description: notes.map((n, i) =>
+            description: this.notes.map((n, i) =>
                 `**${i}) ** ${n.content}`
             ).join('\n')
         });
-        await interaction.channel.send({ embeds: [embed] });
-        await interaction.update({
-            embeds: [Embeds.noteMemberMessage(memberId, guildId)], components: [Components.memberNoteMenu()]
-        });
+        await this.interaction.channel.send({ embeds: [embed] });
+        await this.updateEmbedAndCompToNoteSystem();
     }
 
-    static async resetAllNotes(interaction: SelectMenuInteraction) {
-        const guildId: string = (interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === "Guild ID:")?.value as string;
-        const memberId: string = (interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === Config.memberIDFooter)?.value as string;
-        const notes = await DataBase.noteCollection.find({ memberId, guildId }).toArray();
-        if (!notes || !interaction.channel) return;
+    async softDeleteAllNotes() {
+        if (!this.interaction.channel) return;
         const embed = new MessageEmbed({
             title: "Notes Reseted",
             color: "DARK_RED",
         });
-        await interaction.channel.send({ embeds: [embed] });
-        await interaction.update({
-            embeds: [Embeds.noteMemberMessage(memberId, guildId)], components: [Components.memberNoteMenu()]
+        (await DataBase.noteCollection.updateMany({ memberId: this.memberId, guildId: this.guildId }, { $set: { deleted: true } }));
+        await this.interaction.channel.send({ embeds: [embed] });
+        await this.updateEmbedAndCompToNoteSystem();
+    };
+
+    async updateToRemoveNotesMessage() {
+        if (this.notes.length === 0) {
+            await this.interaction.reply("Member doesn't have any notes..pff shame on him!");
+            return;
+        }
+        await this.interaction.update({ embeds: [Embeds.chooseNoteToRemove(this.memberId, this.guildId)], components: [Components.removeNoteMenu(this.notes as any)] });
+    }
+
+    private async updateEmbedAndCompToNoteSystem() {
+        await this.interaction.update({
+            embeds: [Embeds.noteMemberMessage(this.memberId, this.guildId)], components: [Components.memberNoteMenu()]
         });
     };
 
-    async updateToRemoveNotesMessage(interaction: SelectMenuInteraction) {
-        const notes = await DataBase.noteCollection.find({ memberId: this.memberId, guildId: this.guildId }).toArray();
-        await interaction.update({ embeds: [Embeds.choseNoteToRemove(this.memberId, this.guildId)], components: [Components.removeNoteMenu(notes as any)] });
+    async removeNote() {
+        const _id = new ObjectId(this.interaction.values[0]);
+        await DataBase.noteCollection.updateOne({ _id }, { $set: { deleted: true } });
+        await this.updateEmbedAndCompToNoteSystem();
+        if (!this.interaction.channel) return;
+        await this.interaction.channel.send("We don't need this note!")
     }
 }
 

@@ -32,5 +32,6 @@ export type Note = {
     memberId: string,
     guildId: string,
     content?: string,
+    deleted: boolean,
     _id?: ObjectId,
 }

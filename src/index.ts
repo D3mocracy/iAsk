@@ -122,8 +122,8 @@ client.on('interactionCreate', async interaction => {
             await manageMemberHanlder.chooseGuild(interaction.values[0]);
             await manageMemberHanlder.save();
             await interaction.update({ embeds: [Embeds.memberManageMessage(memberId, interaction.values[0])], components: [Components.memberManagementMenu()] });
-        } else if (interaction.customId === "channel-mng") {
 
+        } else if (interaction.customId === "channel-mng") {
             const managedChannelId: string = (interaction as SelectMenuInteraction).message.embeds[0].footer?.text.replaceAll(`${Config.channelIDFooter} `, "") as any;
             const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, managedChannelId, interaction.channel, interaction.user);
             if (!manageQuestionHandler) return;
@@ -175,25 +175,24 @@ client.on('interactionCreate', async interaction => {
             await manageMemberHanlder.blockMember(interaction);
 
         } else if (interaction.customId === "note-mbr") {
-            const memberId: string = (interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === Config.memberIDFooter)?.value as string;
-            const guildId: string = (interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === "Guild ID:")?.value as string;
-            const manageMemberHanlder = await ManageMemberHanlder.createHandler(client, interaction.user, Utils.convertIDtoUser(client, memberId) as User);
-            const newNoteHandler = await NewNoteHandler.createHandler(interaction.user, interaction);
-            const noteManageHanlder = await NoteManageHanlder.createHanlder(interaction.user.id, memberId, guildId);
+            const noteManageHanlder = await NoteManageHanlder.createHanlder(interaction);
 
             const options: any = {
-                "note-add": async () => { newNoteHandler.addNote() },
-                "note-remove": async () => { noteManageHanlder.updateToRemoveNotesMessage(interaction) },
-                "note-reset": async () => { NoteManageHanlder.resetAllNotes(interaction) },
-                "note-show": async () => { NoteManageHanlder.sendShowAllNotesMessage(interaction) }
+                "note-add": async () => {
+                    const newNoteHandler = await NewNoteHandler.createHandler(interaction.user, interaction);
+                    newNoteHandler.addNote()
+                    await newNoteHandler.save();
+                },
+                "note-remove": async () => { noteManageHanlder.updateToRemoveNotesMessage() },
+                "note-reset": async () => { noteManageHanlder.softDeleteAllNotes() },
+                "note-show": async () => { noteManageHanlder.sendShowAllNotesMessage() }
             }
             await options[interaction.values[0]]();
-            await newNoteHandler.save();
+
 
         } else if (interaction.customId === "remove-notes") {
-            const memberId: string = (interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === Config.memberIDFooter)?.value as string;
-            const guildId: string = (interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === "Guild ID:")?.value as string;
-            const noteManageHanlder = await NoteManageHanlder.createHanlder(interaction.user.id, memberId, guildId);
+            const noteManageHanlder = await NoteManageHanlder.createHanlder(interaction);
+            noteManageHanlder.removeNote();
             //להוסיף את אינטרקשן פשוט לנוט מנגר במקום כל פעם לקבל את זה כי גם ככה אתה לא משתמש פה באיוונט של הודעה
         }
 

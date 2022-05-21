@@ -117,13 +117,9 @@ namespace Components {
 
     export function removeNoteMenu(notes: Note[]) {
         const memberNotesMenu = new MessageSelectMenu().setCustomId('remove-notes').setPlaceholder('Choose a note to remove');
-        // memberNotesMenu.addOptions(notes.map((n, i) => {
-        //     if (!n.content || !n._id) return;
-        //     return { label: i.toString(), description: n.content.toString(), value: n._id.toString() } as any
-        // }))
         notes.map((n, i) => {
             if (!n.content || !n._id) return;
-            memberNotesMenu.addOptions({ label: i.toString(), description: n.content.toString(), value: n._id.toString() })
+            memberNotesMenu.addOptions({ label: `Note #${i.toString()}`, description: n.content.toString(), value: n._id.toString() })
         });
         return new MessageActionRow().addComponents(memberNotesMenu);
     }

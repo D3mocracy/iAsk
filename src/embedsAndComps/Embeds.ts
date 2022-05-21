@@ -64,7 +64,7 @@ namespace Embeds {
         return msg;
     }
 
-    export function choseNoteToRemove(memberId: string, guildId: string) {
+    export function chooseNoteToRemove(memberId: string, guildId: string) {
         const msg = new MessageEmbed({
             title: "Choose A Note To **Remove**",
             color: "RED",
