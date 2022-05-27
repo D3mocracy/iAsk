@@ -87,7 +87,52 @@ namespace Embeds {
         //     { name: Config.memberIDFooter, value: memberId }
         // ]);
         return msg;
+    };
+
+    export function catagoryHelper(guild: Guild) {
+        const msg = new MessageEmbed({
+            title: "Catagory Helper",
+            description: "Here is some catagories id's",
+            color: 'BLURPLE'
+        });
+        guild.channels.cache.forEach(c => {
+            if (c.type === "GUILD_CATEGORY") {
+                msg.addField(`${c.name}:`, c.id, false);
+            }
+        });
+        return msg;
     }
+
+    export function channelHelper(guild: Guild) {
+        const msg = new MessageEmbed({
+            title: "Channel Helper",
+            description: "Here is some channels id's",
+            color: 'GREEN'
+        });
+        guild.channels.cache.forEach(c => {
+            if (c.type === "GUILD_TEXT") {
+                msg.addField(`${c.name}:`, c.id, false);
+            }
+        });
+        return msg;
+    }
+
+    export function roleHelper(guild: Guild) {
+        const msg = new MessageEmbed({
+            title: "Role Helper",
+            description: "Here is some roles id's",
+            color: 'GREYPLE'
+        });
+        guild.roles.cache.forEach(c => {
+            msg.addField(`${c.name}:`, c.id, false);
+        });
+        return msg;
+    }
+
+    export const setupMessage = new MessageEmbed({
+        title: "Setup Your Guild - iAsk Bot",
+        description: "You can see here what properties are already set, or edit them by clicking at the wanted option."
+    });
 
     export const worngUsageManageMsg = new MessageEmbed({
         title: "Wrong Usage",

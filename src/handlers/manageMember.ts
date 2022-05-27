@@ -33,8 +33,8 @@ class ManageMemberHanlder {
         this.action = { managerId: this.manager.id, memberId: this.member.id }
         const user = Utils.convertIDtoUser(this.bot, this.member.id);
         if (!user) return;
-        if (Utils.commonGuildCheck(this.bot, user, this.manager).length !== 0) {
-            await channel.send({ embeds: [Embeds.chooseGuildManageMember], components: [Components.chooseGuildMenuManageMember(this.bot, user, this.manager)] });
+        if ((await Utils.commonGuildCheck(this.bot, user, this.manager)).length !== 0) {
+            await channel.send({ embeds: [Embeds.chooseGuildManageMember], components: [await Components.chooseGuildMenuManageMember(this.bot, user, this.manager)] });
         } else {
             await channel.send("Error: can't find common guild between u 2, maybe you should invite him...")
         }

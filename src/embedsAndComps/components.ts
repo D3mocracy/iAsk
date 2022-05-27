@@ -1,4 +1,4 @@
-import { Client, Guild, GuildMember, MessageActionRow, MessageButton, MessageSelectMenu, MessageSelectOptionData, User, Util } from "discord.js";
+import { Client, Guild, GuildMember, Message, MessageActionRow, MessageButton, MessageSelectMenu, MessageSelectOptionData, User, Util } from "discord.js";
 import Config from "../config";
 import OpenQuestionHandler from "../handlers/openQuestion";
 import { Note } from "../types";
@@ -6,10 +6,10 @@ import Utils from "../utils";
 
 namespace Components {
 
-    export function chooseGuildMenuOpenQuestion(bot: Client, user: User) {
+    export async function chooseGuildMenuOpenQuestion(bot: Client, user: User) {
         const chooseGuildMenu = new MessageSelectMenu().setCustomId('choose-guild-open-question').setPlaceholder(Config.chooseGuildEmbedMessagePlaceHolder);
 
-        Utils.commonGuildCheck(bot, user).forEach(g => {
+        (await Utils.commonGuildCheck(bot, user)).forEach(g => {
             chooseGuildMenu.addOptions([{
                 label: g.name,
                 description: g.description || g.name,
@@ -20,10 +20,10 @@ namespace Components {
         return new MessageActionRow().addComponents(chooseGuildMenu);
     }
 
-    export function chooseGuildMenuManageMember(bot: Client, ...user: User[]) {
+    export async function chooseGuildMenuManageMember(bot: Client, ...user: User[]) {
         const chooseGuildMenu = new MessageSelectMenu().setCustomId('choose-guild-manage-member').setPlaceholder(Config.chooseGuildEmbedMessagePlaceHolder);
 
-        Utils.commonGuildCheck(bot, ...user).forEach(g => {
+        (await Utils.commonGuildCheck(bot, ...user)).forEach(g => {
             chooseGuildMenu.addOptions([{
                 label: g.name,
                 description: g.description || g.name,
@@ -33,6 +33,23 @@ namespace Components {
         });
         return new MessageActionRow().addComponents(chooseGuildMenu);
     }
+
+    const setupOptionList: MessageSelectOptionData[] = [
+        { label: "Question Catagory", description: "Change the question catagory ID", value: "question-catagory" },
+        { label: "Tools Log", description: "Change the tools log channel ID", value: "tool-log-channel-id" },
+        { label: "Question Log", description: "Change the question log channel ID", value: "question-log-channel-id" },
+        { label: "Notification Role", description: "Change the notification role ID", value: "notification-role-id" },
+        { label: "Member Role", description: "Change the member role ID", value: "member-role-id" },
+        { label: "Trusted Role", description: "Change the trusted role ID", value: "trusted-role-id" },
+        { label: "Supervisor Role", description: "Change the supervisor role ID", value: "supervisor-role-id" },
+        { label: "Manager Role", description: "Change the manager role ID", value: "manager-role-id" },
+    ];
+    export function setupMenu() {
+        const setupMenu = new MessageSelectMenu().setCustomId('setup').setPlaceholder("Choose one of the options below");
+        setupMenu.addOptions(setupOptionList);
+        return new MessageActionRow().addComponents(setupMenu);
+    }
+
 
     const channelOptionList: (MessageSelectOptionData & { rank: string })[] = [
         { rank: "Manager", label: "Delete", description: "Delete the question", value: "question-del" },
@@ -64,6 +81,13 @@ namespace Components {
         const yesButton = new MessageButton().setCustomId("mng-msg-yes").setLabel(Config.yesSureButton).setStyle("SUCCESS");
         const noButton = new MessageButton().setCustomId("mng-msg-no").setLabel(Config.noSureButton).setStyle("DANGER");
         return new MessageActionRow().addComponents(yesButton, noButton);
+    }
+
+    export function helperButtons() {
+        const catagoryButton = new MessageButton().setCustomId('hlp-catagory').setLabel('Catagory Helper').setStyle('PRIMARY');
+        const channelButton = new MessageButton().setCustomId('hlp-channel').setLabel('Channel Helper').setStyle('SUCCESS');
+        const roleButton = new MessageButton().setCustomId('hlp-role').setLabel('Role Helper').setStyle('SECONDARY');
+        return new MessageActionRow().addComponents(catagoryButton, channelButton, roleButton);
     }
 
     const detailsOptionList: (MessageSelectOptionData)[] = [

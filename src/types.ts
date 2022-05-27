@@ -45,3 +45,16 @@ export type ManageMSG = {
     deleted: boolean,
     _id?: boolean,
 }
+
+export type SetupConfig = {
+    guildId: string,
+    done: boolean,
+    questionCatagory: string,
+    manageToolLogChannelID: string,
+    questionLogChannelID: string,
+    notificationRoleID: string,
+    memberRoleID: string,
+    trustedRoleID: string,
+    supervisorRoleID: string,
+    managerRoleID: string,
+}

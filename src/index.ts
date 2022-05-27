@@ -1,5 +1,5 @@
 require("dotenv").config();
-import { ButtonInteraction, Client, DMChannel, Guild, Intents, SelectMenuInteraction, TextChannel, User } from "discord.js";
+import { Client, DMChannel, Intents, SelectMenuInteraction, TextChannel } from "discord.js";
 import Config from "./config";
 import DataBase from "./db";
 import Components from "./embedsAndComps/components";
@@ -12,6 +12,7 @@ import OpenQuestionHandler from "./handlers/openQuestion";
 import Utils from "./utils";
 import NoteManageHanlder from "./handlers/noteManage";
 import ManagementMessageHanlder from "./handlers/managementMessage";
+import SetupHanlder from "./handlers/setup";
 const client: Client = new Client({ partials: ["CHANNEL"], intents: new Intents(32767) });
 
 
@@ -23,8 +24,10 @@ client.on("messageCreate", async message => {
 
     if (message.channel.type === "DM" && message.author != client.user) {
         const args = message.content.split(" ");
+        // await Utils.getDoneGuildsID();
 
-        if (Utils.commonGuildCheck(client, message.author).length === 0) {
+
+        if ((await Utils.commonGuildCheck(client, message.author)).length === 0) {
             await message.channel.send(Config.error404);
             return;
         }
@@ -62,7 +65,6 @@ client.on("messageCreate", async message => {
         if (args[0].toLowerCase() === Config.managePrefix) {
             if (args.length === 3) {
                 if (args[1] === Config.manageChannel) {
-                    // const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, args[2], message.channel, message.author);
                     await message.reply({ embeds: [Embeds.questionManageMessage(args[2])], components: [Components.manageQuestionMenu()] });
 
                 } else if (args[1] === Config.manageMember) {
@@ -103,12 +105,42 @@ client.on("messageCreate", async message => {
         }
     } else if (message.channel.type === "GUILD_TEXT" && message.author != client.user) {
         if (message.content === "!setup") {
+            if (!message.guildId) return;
+            const setupHandler = await SetupHanlder.createHandler(client, message.channel as TextChannel);
             await message.channel.sendTyping();
             await message.channel.send({ content: "Oh, hello there little strager :D" });
             await message.channel.sendTyping();
-            setTimeout(async () => {
-                await message.channel.send({ content: "I am registering you as the manager" });
-            }, 3000);
+            await setupHandler.sendSetupMessage(message.channel as TextChannel);
+
+            const buttonCollector = message.channel.createMessageComponentCollector({ componentType: 'BUTTON' });
+            buttonCollector.on('collect', async btn => {
+                if (!btn.guild) return;
+                const sendHelpers: any = {
+                    'hlp-catagory': async () => message.channel.send({ embeds: [Embeds.catagoryHelper(btn.guild!)] }),
+                    'hlp-channel': async () => message.channel.send({ embeds: [Embeds.channelHelper(btn.guild!)] }),
+                    'hlp-role': async () => message.channel.send({ embeds: [Embeds.roleHelper(btn.guild!)] }),
+                };
+                await sendHelpers[btn.customId]();
+                try {
+                    await btn.deferUpdate();
+                } catch (error) { }
+            })
+
+            const interactionCollector = message.channel.createMessageComponentCollector({ componentType: 'SELECT_MENU' });
+            interactionCollector.on('collect', async i => {
+                if (!i.channel) return;
+
+                await i.update({ content: `**Please type the new ${i.values[0].replaceAll("-", " ")}**`, embeds: [], components: [] });
+
+                const messageCollector = i.channel.createMessageCollector({ max: 1 });
+                messageCollector.on('collect', async m => {
+                    if (m.author.bot) return;
+                    await setupHandler.setConfigValue(i.values[0], m.content);
+                    await setupHandler.save();
+                    await m.channel.sendTyping();
+                    await setupHandler.sendSetupMessage(i.channel as TextChannel);
+                });
+            })
         }
     }
 });
@@ -117,6 +149,10 @@ client.on('interactionCreate', async interaction => {
 
     if (interaction.isSelectMenu()) {
         if (interaction.customId === "choose-guild-open-question") {
+            if (await SetupHanlder.isMissingValues(interaction.values[0])) {
+                await interaction.update("Sorry, you can't open a new question on that guild right now.")
+                return;
+            }
             const openQuestionHandler = await OpenQuestionHandler.createHandler(client, interaction.user, interaction.channel);
 
             await openQuestionHandler.chooseGuild(interaction.values[0]);
@@ -207,9 +243,10 @@ client.on('interactionCreate', async interaction => {
         } else if (interaction.customId === "remove-notes") {
             const noteManageHanlder = await NoteManageHanlder.createHanlder(interaction);
             noteManageHanlder.removeNote();
+
         }
 
-    } else if (interaction.isButton()) {
+    } else if (interaction.isButton() && interaction.channel?.type === "DM") {
         if (interaction.customId === "mng-msg-yes" || interaction.customId === "mng-msg-no") {
             const managementMessageHandler = await ManagementMessageHanlder.createHandler(interaction.user, client);
             await managementMessageHandler.manageMessageDealer(interaction);
