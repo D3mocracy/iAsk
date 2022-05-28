@@ -1,5 +1,5 @@
 require("dotenv").config();
-import { Client, DMChannel, Intents, SelectMenuInteraction, TextChannel } from "discord.js";
+import { Client, DMChannel, Intents, MessageActionRow, SelectMenuInteraction, TextChannel } from "discord.js";
 import Config from "./config";
 import DataBase from "./db";
 import Components from "./embedsAndComps/components";
@@ -64,7 +64,9 @@ client.on("messageCreate", async message => {
         if (args[0].toLowerCase() === Config.managePrefix) {
             if (args.length === 3) {
                 if (args[1] === Config.manageChannel) {
-                    await message.reply({ embeds: [Embeds.questionManageMessage(args[2])], components: [Components.manageQuestionMenu()] });
+                    const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, args[2], message.channel as DMChannel, message.author);
+                    if (!manageQuestionHandler) return;
+                    await message.reply({ embeds: [Embeds.questionManageMessage(args[2])], components: [await manageQuestionHandler.manageQuestionComp() as MessageActionRow] });
 
                 } else if (args[1] === Config.manageMember) {
                     const user = await client.users.fetch(args[2])
@@ -104,10 +106,10 @@ client.on("messageCreate", async message => {
         }
     } else if (message.channel.type === "GUILD_TEXT" && message.author !== client.user) {
         const rankHandler = await RankHandler.createHandler(message.member!);
-        console.log(await rankHandler.isRank(Rank.MEMBER));
+        console.log((rankHandler.getManageRoles())?.map(r => r.name));
 
         const args = message.content.split(" ");
-        if (args[0] === "!setup") {
+        if (args[0] === "!setup" && message.member?.permissions.has('ADMINISTRATOR')) {
             if (!message.guildId) return;
             const setupHandler = await SetupHanlder.createHandler(client, message.channel as TextChannel);
             await setupHandler.sendProlog(args[1]);
@@ -165,7 +167,7 @@ client.on('interactionCreate', async interaction => {
             const manageMemberHanlder = await ManageMemberHanlder.createHandler(client, interaction.user, memberId);
             await manageMemberHanlder.chooseGuild(interaction.values[0]);
             await manageMemberHanlder.save();
-            await interaction.update({ embeds: [Embeds.memberManageMessage(memberId, interaction.values[0])], components: [Components.memberManagementMenu()] });
+            await interaction.update({ embeds: [Embeds.memberManageMessage(memberId, interaction.values[0])], components: [await manageMemberHanlder.manageMemberComp() as MessageActionRow] });
 
         } else if (interaction.customId === "channel-mng") {
             const managedChannelId: string = (interaction as SelectMenuInteraction).message.embeds[0].footer?.text.replaceAll(`${Config.channelIDFooter} `, "") as any;
@@ -183,7 +185,9 @@ client.on('interactionCreate', async interaction => {
             await manageQuestionHandler.log(interaction.values[0]);
             await options[interaction.values[0]]();
             await manageQuestionHandler.save();
-            interaction.update({ components: [Components.manageQuestionMenu()] });
+            // const comp = await manageQuestionHandler.manageQuestionComp();
+            // if (!comp) return;
+            interaction.update({ components: [await manageQuestionHandler.manageQuestionComp() as MessageActionRow] });
 
         } else if (interaction.customId === "change-dtl") {
             const managedChannelId: string = (interaction as SelectMenuInteraction).message.embeds[0].footer?.text.replaceAll(`${Config.channelIDFooter} `, "") as any;
@@ -269,9 +273,8 @@ client.on('guildCreate', async g => {
 });
 
 client.on('guildMemberAdd', async m => {
-    const memberRole = m.guild.roles.cache.get((await SetupHanlder.getConfigObject(m.guild.id)).memberRoleID);
-    if (!memberRole) return;
-    m.roles.add(memberRole);
+    const rankHandler = await RankHandler.createHandler(m);
+    await rankHandler.setRanks(Rank.MEMBER);
 })
 
 DataBase.init().then(() => client.login(Config.TOKEN));

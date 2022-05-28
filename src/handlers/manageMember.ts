@@ -1,4 +1,4 @@
-import { Client, DMChannel, Guild, SelectMenuInteraction, TextChannel, User } from "discord.js";
+import { Client, DMChannel, Guild, GuildMember, SelectMenuInteraction, TextChannel, User } from "discord.js";
 import DataBase from "../db";
 import Components from "../embedsAndComps/components";
 import Embeds from "../embedsAndComps/Embeds";
@@ -21,6 +21,12 @@ class ManageMemberHanlder {
 
     async save() {
         await DataBase.memberManagementCollection.updateOne({ managerId: this.manager.id }, { $set: this.action }, { upsert: true });
+    }
+
+    async manageMemberComp() {
+        if (!this.bot || !this.manager.id || !this.action.guildId) return;
+        const member = Utils.convertIDtoMemberFromGuild(this.bot, this.manager.id, this.action.guildId) as GuildMember;
+        return Components.memberManagementMenu(member);
     }
 
     static async getMemberIdFromDBByManagerId(manager: User) {
