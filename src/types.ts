@@ -57,4 +57,5 @@ export type SetupConfig = {
     trustedRoleID: string,
     supervisorRoleID: string,
     managerRoleID: string,
+    maxQuestions: number,
 }

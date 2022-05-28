@@ -13,7 +13,8 @@ import Utils from "./utils";
 import NoteManageHanlder from "./handlers/noteManage";
 import ManagementMessageHanlder from "./handlers/managementMessage";
 import SetupHanlder from "./handlers/setup";
-const client: Client = new Client({ partials: ["CHANNEL"], intents: new Intents(32767) });
+import RankHandler, { Rank } from "./handlers/rank";
+export const client: Client = new Client({ partials: ["CHANNEL"], intents: new Intents(32767) });
 
 
 client.on("ready", async () => {
@@ -21,11 +22,9 @@ client.on("ready", async () => {
 })
 
 client.on("messageCreate", async message => {
-
+    if (message.attachments.size > 0) return;
     if (message.channel.type === "DM" && message.author != client.user) {
         const args = message.content.split(" ");
-        // await Utils.getDoneGuildsID();
-
 
         if ((await Utils.commonGuildCheck(client, message.author)).length === 0) {
             await message.channel.send(Config.error404);
@@ -104,11 +103,14 @@ client.on("messageCreate", async message => {
             return;
         }
     } else if (message.channel.type === "GUILD_TEXT" && message.author !== client.user) {
-        if (message.content === "!setup") {
+        const rankHandler = await RankHandler.createHandler(message.member!);
+        console.log(await rankHandler.isRank(Rank.MEMBER));
+
+        const args = message.content.split(" ");
+        if (args[0] === "!setup") {
             if (!message.guildId) return;
             const setupHandler = await SetupHanlder.createHandler(client, message.channel as TextChannel);
-            await setupHandler.sendProlog();
-            await setupHandler.sendSetupMessage(message.channel as TextChannel);
+            await setupHandler.sendProlog(args[1]);
 
             const buttonCollector = message.channel.createMessageComponentCollector({ componentType: 'BUTTON' });
             buttonCollector.on('collect', async btn => {
@@ -133,7 +135,7 @@ client.on("messageCreate", async message => {
                     await setupHandler.setConfigValue(i.values[0], m.content);
                     await setupHandler.save();
                     await m.channel.sendTyping();
-                    await setupHandler.sendSetupMessage(i.channel as TextChannel);
+                    await setupHandler.sendSetupMessage();
                 });
             })
         }
@@ -144,10 +146,6 @@ client.on('interactionCreate', async interaction => {
 
     if (interaction.isSelectMenu()) {
         if (interaction.customId === "choose-guild-open-question") {
-            if (await SetupHanlder.isMissingValues(interaction.values[0])) {
-                await interaction.update("Sorry, you can't open a new question on that guild right now.")
-                return;
-            }
             const openQuestionHandler = await OpenQuestionHandler.createHandler(client, interaction.user, interaction.channel);
 
             await openQuestionHandler.chooseGuild(interaction.values[0]);
@@ -182,7 +180,7 @@ client.on('interactionCreate', async interaction => {
                 "question-log": async () => manageQuestionHandler.logQuestion(),
                 "question-details-change": async () => manageQuestionHandler.chooseChangeDetail(),
             }
-
+            await manageQuestionHandler.log(interaction.values[0]);
             await options[interaction.values[0]]();
             await manageQuestionHandler.save();
             interaction.update({ components: [Components.manageQuestionMenu()] });
@@ -261,10 +259,19 @@ client.on('interactionCreate', async interaction => {
             }
         }
         await openQuestionHandler.save();
-
         interaction.update({ embeds: [], components: [] });
-
     }
 });
+
+client.on('guildCreate', async g => {
+    const setupChannel = await g.channels.create("setup", { type: 'GUILD_TEXT' });
+    await setupChannel.send({ embeds: [Embeds.setupHereMessage] });
+});
+
+client.on('guildMemberAdd', async m => {
+    const memberRole = m.guild.roles.cache.get((await SetupHanlder.getConfigObject(m.guild.id)).memberRoleID);
+    if (!memberRole) return;
+    m.roles.add(memberRole);
+})
 
 DataBase.init().then(() => client.login(Config.TOKEN));

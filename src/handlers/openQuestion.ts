@@ -1,10 +1,11 @@
-import { Client, DMChannel, Guild, GuildMember, User } from "discord.js";
+import { CategoryChannelResolvable, Client, DMChannel, Guild, GuildMember, User } from "discord.js";
 import Config from "../config";
 import Components from "../embedsAndComps/components";
 import DataBase from "../db";
 import Embeds from "../embedsAndComps/Embeds";
 import { Question } from "../types";
 import { MissingGuildIdError } from "../error";
+import SetupHanlder from "./setup";
 
 class OpenQuestionHandler {
     private channel: DMChannel;
@@ -28,7 +29,7 @@ class OpenQuestionHandler {
 
     async isReachedLimit() {
         const qList = await DataBase.questionsCollection.find({ authorId: this.user.id, guildId: this.question.guildId, deleted: false }).toArray();
-        return qList.length === Config.maxQuestionsPerGuild;
+        return qList.length === (await SetupHanlder.getConfigObject(this.question.guildId as string)).maxQuestions;
     }
 
     async chooseGuild(guildId: string) {
@@ -61,7 +62,8 @@ class OpenQuestionHandler {
     async createChannelOnGuild() {
         if (!this.question.guildId) throw new MissingGuildIdError();
         const guild = await this.bot.guilds.fetch(this.question.guildId);
-        const guildChannel = await guild.channels.create(this.question.title || "Error 404", { type: "GUILD_TEXT" });
+        const questionCatagory = await this.bot.channels.fetch((await SetupHanlder.getConfigObject(this.question.guildId)).questionCatagory) as CategoryChannelResolvable;
+        const guildChannel = await guild.channels.create(this.question.title || "Error 404", { type: "GUILD_TEXT", parent: questionCatagory });
         this.question.channelId = guildChannel.id;
         await this.channel.send({ embeds: [Embeds.questionMessage(this.question.title || "Error 404", this.question.description || "Error 404", this.question.anonymous ? "Anonymous" : `${this.user.tag}`, this.question.channelId)] })
         await guildChannel.send({ embeds: [Embeds.questionMessage(this.question.title || "Error 404", this.question.description || "Error 404", this.question.anonymous ? "Anonymous" : `${this.user.tag}`, this.question.channelId)] });

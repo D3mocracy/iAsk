@@ -15,7 +15,7 @@ class Config {
     static readonly iHaveAQuestionMessage: string = "i have a question";
 
     @configurable()
-    static readonly maxQuestionsPerGuild: number = 2;
+    static readonly maxQuestionsPerGuildd: number = 2;
 
     @configurable()
     static readonly reachLimitQuestionsError: string = "You have reached the limit.";

@@ -125,6 +125,19 @@ namespace Embeds {
         return msg;
     }
 
+    export function manageLogMessage(toolName: string, managerTag: string, questionId: string) {
+        const msg = new MessageEmbed({
+            title: `${toolName.toUpperCase().replaceAll("-", " ")}`,
+            footer: { text: `${new Date()}` },
+            color: 'RANDOM'
+        }).setFields(
+            { name: "Done by:", value: managerTag, inline: false },
+            { name: "Channel ID:", value: questionId, inline: false },
+        )
+
+        return msg;
+    }
+
     export const setupMessage = new MessageEmbed({
         title: "Setup Your Guild - iAsk Bot",
         description: "You can see here what properties are already set, or edit them by clicking at the wanted option.",
@@ -132,6 +145,13 @@ namespace Embeds {
         author: { name: "iAsk - Setup Assistant" },
         color: "NAVY"
     });
+
+    export const setupHereMessage = new MessageEmbed({
+        title: "Setup Your Channel",
+        description: "Type here !setup to start or !setup fast to skip the prolog.",
+        color: "GOLD",
+        footer: { text: "Bot won't work before the setup will be initialized" }
+    })
 
     export const worngUsageManageMsg = new MessageEmbed({
         title: "Wrong Usage",

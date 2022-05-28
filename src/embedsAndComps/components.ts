@@ -38,6 +38,7 @@ namespace Components {
         { label: "Question Catagory", description: "Change the question catagory ID", value: "question-catagory" },
         { label: "Tools Log", description: "Change the tools log channel ID", value: "tool-log-channel-id" },
         { label: "Question Log", description: "Change the question log channel ID", value: "question-log-channel-id" },
+        { label: "Max Questions", description: "Change the max question per member on your guild", value: "max-questions-per-member" },
         { label: "Notification Role", description: "Change the notification role ID", value: "notification-role-id" },
         { label: "Member Role", description: "Change the member role ID", value: "member-role-id" },
         { label: "Trusted Role", description: "Change the trusted role ID", value: "trusted-role-id" },

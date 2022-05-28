@@ -1,17 +1,17 @@
-import { Client, DMChannel, GuildMember, Role, TextChannel, User } from "discord.js";
+import { Client, DMChannel, TextChannel, User } from "discord.js";
 import DataBase from "../db";
 import { ManagementDetails, Question } from "../types";
-import { MissingGuildIdError, UnknownChannel } from "../error"
+import { MissingGuildIdError } from "../error"
 import Config from "../config";
 import Embeds from "../embedsAndComps/Embeds";
 import Components from "../embedsAndComps/components";
-import { createTranscript } from "discord-html-transcripts";
+import LogHandler from "./log";
+import SetupHanlder from "./setup";
 
 class ManageQuestionHandler {
     private question: Question = {} as any;
     private questionChannel: TextChannel = {} as any;
     private dmChannel: DMChannel;
-    private manageDetail: ManagementDetails = {} as any;
     private constructor(private bot: Client, private questionChannelId: string, dmChannel: any, private sender: User) {
         this.dmChannel = dmChannel;
     }
@@ -41,8 +41,19 @@ class ManageQuestionHandler {
         return this.question;
     }
 
+    async log(toolName: string) {
+        const guild = await this.bot.guilds.fetch(this.question.guildId as string);
+        const channelLog = await guild.channels.fetch((await SetupHanlder.getConfigObject(this.question.guildId as string)).manageToolLogChannelID)
+        //logManagerTool(bot: Client, logChannel: TextChannel, toolName: string, questionId: string, tag: string) {
+        LogHandler.logManagerTool(this.bot, channelLog as TextChannel, toolName, this.question.channelId as string, this.sender.tag);
+    }
+
     async deleteQuestion() {
         if (!this.question.deleted) {
+            if (!this.question.guildId) return;
+            const guild = await this.bot.guilds.fetch(this.question.guildId);
+            const questionLogChannel = guild.channels.cache.get((await SetupHanlder.getConfigObject(this.question.guildId)).questionLogChannelID) as any;
+            await LogHandler.logQuestionChannel(this.questionChannel, questionLogChannel)
             await this.questionChannel.delete();
             this.question.deleted = true;
             this.dmChannel.send("Channel Deleted")
@@ -81,12 +92,7 @@ class ManageQuestionHandler {
     }
 
     async logQuestion() {
-        const attachment = await createTranscript(this.questionChannel, {
-            limit: -1,
-            returnType: "attachment",
-            fileName: `question_log.html`
-        });
-        await this.dmChannel.send({ files: [attachment] });
+        LogHandler.logQuestionChannel(this.questionChannel, this.dmChannel);
     }
 
     async chooseChangeDetail() {
