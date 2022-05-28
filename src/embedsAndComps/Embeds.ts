@@ -1,4 +1,4 @@
-import { Guild, MessageEmbed } from "discord.js";
+import { Client, Guild, MessageEmbed } from "discord.js";
 import Config from "../config";
 
 namespace Embeds {
@@ -82,10 +82,6 @@ namespace Embeds {
             author: { name: "iAsk Management", iconURL: "https://i.imgur.com/I7EoZkF.png" },
             footer: { text: `This message sent from ${guild.name} guild by an administrator.` }
         })
-        // .addFields([
-        //     { name: "Guild ID:", value: guild.id },
-        //     { name: Config.memberIDFooter, value: memberId }
-        // ]);
         return msg;
     };
 
@@ -131,7 +127,10 @@ namespace Embeds {
 
     export const setupMessage = new MessageEmbed({
         title: "Setup Your Guild - iAsk Bot",
-        description: "You can see here what properties are already set, or edit them by clicking at the wanted option."
+        description: "You can see here what properties are already set, or edit them by clicking at the wanted option.",
+        footer: { text: "Don't know the id's? you can click on one of the helpers to get some help!" },
+        author: { name: "iAsk - Setup Assistant" },
+        color: "NAVY"
     });
 
     export const worngUsageManageMsg = new MessageEmbed({

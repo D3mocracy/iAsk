@@ -103,24 +103,17 @@ client.on("messageCreate", async message => {
             await openQuesitonHandler.save();
             return;
         }
-    } else if (message.channel.type === "GUILD_TEXT" && message.author != client.user) {
+    } else if (message.channel.type === "GUILD_TEXT" && message.author !== client.user) {
         if (message.content === "!setup") {
             if (!message.guildId) return;
             const setupHandler = await SetupHanlder.createHandler(client, message.channel as TextChannel);
-            await message.channel.sendTyping();
-            await message.channel.send({ content: "Oh, hello there little strager :D" });
-            await message.channel.sendTyping();
+            await setupHandler.sendProlog();
             await setupHandler.sendSetupMessage(message.channel as TextChannel);
 
             const buttonCollector = message.channel.createMessageComponentCollector({ componentType: 'BUTTON' });
             buttonCollector.on('collect', async btn => {
                 if (!btn.guild) return;
-                const sendHelpers: any = {
-                    'hlp-catagory': async () => message.channel.send({ embeds: [Embeds.catagoryHelper(btn.guild!)] }),
-                    'hlp-channel': async () => message.channel.send({ embeds: [Embeds.channelHelper(btn.guild!)] }),
-                    'hlp-role': async () => message.channel.send({ embeds: [Embeds.roleHelper(btn.guild!)] }),
-                };
-                await sendHelpers[btn.customId]();
+                await setupHandler.sendHelpers(message, btn);
                 try {
                     await btn.deferUpdate();
                 } catch (error) { }
@@ -130,7 +123,9 @@ client.on("messageCreate", async message => {
             interactionCollector.on('collect', async i => {
                 if (!i.channel) return;
 
-                await i.update({ content: `**Please type the new ${i.values[0].replaceAll("-", " ")}**`, embeds: [], components: [] });
+                try {
+                    await i.update({ content: `**Please type the new ${i.values[0].replaceAll("-", " ")}**`, embeds: [], components: [] });
+                } catch (error) { }
 
                 const messageCollector = i.channel.createMessageCollector({ max: 1 });
                 messageCollector.on('collect', async m => {
@@ -271,6 +266,5 @@ client.on('interactionCreate', async interaction => {
 
     }
 });
-
 
 DataBase.init().then(() => client.login(Config.TOKEN));

@@ -1,4 +1,4 @@
-import { Client, DMChannel, Guild, TextChannel, Util } from "discord.js";
+import { ButtonInteraction, Client, DMChannel, Guild, Message, TextChannel, Util } from "discord.js";
 import DataBase from "../db";
 import Components from "../embedsAndComps/components";
 import Embeds from "../embedsAndComps/Embeds";
@@ -42,8 +42,8 @@ class SetupHanlder {
 
     async setCatagory(id: string) {
         const catagory = this.guild.channels.cache.get(id);
-        if (catagory) {
-            if (catagory.type === "GUILD_CATEGORY") this.config.questionCatagory = id;
+        if (catagory && catagory.type === "GUILD_CATEGORY") {
+            this.config.questionCatagory = id;
         } else {
             await this.channel.send("I don't think this is a catagory id...")
         }
@@ -104,13 +104,34 @@ class SetupHanlder {
         this.config.done = !(await SetupHanlder.isMissingValues(this.guild.id))
     }
 
-    static async isMissingValues(guildId: string) {
-        const config: SetupConfig = await DataBase.configCollection.findOne({ guildId }) as any;
-        if (!config) return true;
-        const values = Object.values(config);
-        return values.length < 10;
+    async sendHelpers(message: Message, btn: ButtonInteraction) {
+        const sendHelpers: any = {
+            'hlp-catagory': async () => message.channel.send({ embeds: [Embeds.catagoryHelper(btn.guild!)] }),
+            'hlp-channel': async () => message.channel.send({ embeds: [Embeds.channelHelper(btn.guild!)] }),
+            'hlp-role': async () => message.channel.send({ embeds: [Embeds.roleHelper(btn.guild!)] }),
+        };
+        await sendHelpers[btn.customId]();
     }
 
+    async sendProlog() {
+        await this.sendMessageWithDelay("Oh.. Hi there little strager", 2);
+        await this.sendMessageWithDelay("Let's begin!", 1);
+    }
+
+    sendMessageWithDelay(content: string, seconds: number): Promise<void> {
+        return new Promise(async resolve => {
+            await this.channel.sendTyping();
+            setTimeout(async () => {
+                await this.channel.send(content);
+                resolve();
+            }, seconds * 1000);
+        });
+    }
+
+    static async isMissingValues(guildId: string) {
+        const config: SetupConfig = await DataBase.configCollection.findOne({ guildId }) as any;
+        return !!config.done;
+    }
 }
 
 export default SetupHanlder;
