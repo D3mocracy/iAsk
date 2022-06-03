@@ -42,7 +42,7 @@ class ChangeDetailsHandler {
         if (!member) return;
         await this.channel.send({
             embeds: [Embeds.questionMessage(this.question.title as string, this.question.description as string,
-                this.question.anonymous ? "Anonymous" : member?.user.tag, this.question.channelId)]
+                this.question.anonymous ? "Anonymous" : member?.user.tag, this.question.channelId, this.question.guildId)]
         })
     }
 

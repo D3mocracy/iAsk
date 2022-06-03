@@ -16,8 +16,9 @@ namespace Embeds {
         color: Config.chooseGuildEmbedMessageColorOpenQuesiton
     });
 
-    export function questionMessage(title: string, description: string, tag: string, channelId?: string) {
+    export function questionMessage(title: string, description: string, tag: string, channelId?: string, guildId?: string) {
         const msg = new MessageEmbed({
+            author: { name: 'Jump To The Question', iconURL: 'https://i.imgur.com/I7EoZkF.png', url: `https://discord.com/channels/${guildId}/${channelId}` },
             title, description,
             footer: { text: `Channel ID: ${channelId || ""}` },
             color: 'AQUA'

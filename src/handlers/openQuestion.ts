@@ -67,8 +67,8 @@ class OpenQuestionHandler {
         const questionCatagory = await this.bot.channels.fetch((await SetupHanlder.getConfigObject(this.question.guildId)).questionCatagory) as CategoryChannelResolvable;
         const guildChannel = await guild.channels.create(this.question.title || "Error 404", { type: "GUILD_TEXT", parent: questionCatagory });
         this.question.channelId = guildChannel.id;
-        await this.channel.send({ embeds: [Embeds.questionMessage(this.question.title || "Error 404", this.question.description || "Error 404", this.question.anonymous ? "Anonymous" : `${this.user.tag}`, this.question.channelId)] })
-        await guildChannel.send({ embeds: [Embeds.questionMessage(this.question.title || "Error 404", this.question.description || "Error 404", this.question.anonymous ? "Anonymous" : `${this.user.tag}`, this.question.channelId)] });
+        await this.channel.send({ embeds: [Embeds.questionMessage(this.question.title || "Error 404", this.question.description || "Error 404", this.question.anonymous ? "Anonymous" : `${this.user.tag}`, this.question.channelId, this.question.guildId)] })
+        await guildChannel.send({ embeds: [Embeds.questionMessage(this.question.title || "Error 404", this.question.description || "Error 404", this.question.anonymous ? "Anonymous" : `${this.user.tag}`, this.question.channelId, this.question.guildId)] });
         const rankHandler = await RankHandler.createHandler(Utils.convertIDtoMemberFromGuild(this.bot, this.user.id, guild.id));
         await (await guildChannel.send(`${rankHandler.getRank(Rank.NOTIFICATION)}`)).delete();
     }

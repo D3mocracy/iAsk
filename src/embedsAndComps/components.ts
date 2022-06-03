@@ -56,7 +56,7 @@ namespace Components {
         { rank: [Rank.MEMBER, Rank.TRUSTED, Rank.SUPERVISOR, Rank.MANAGER], label: "Delete", description: "Delete the question", value: "question-del", emoji: '❌' },
         { rank: [Rank.TRUSTED, Rank.SUPERVISOR, Rank.MANAGER], label: "Lock", description: "Lock the question", value: "question-lock", emoji: '🔒' },
         { rank: [Rank.TRUSTED, Rank.SUPERVISOR, Rank.MANAGER], label: "Unlock", description: "Unlock the question", value: "question-unlock", emoji: '🔓' },
-        { rank: [Rank.MANAGER], label: "👁️ Reveal", description: "Reveal the user tag", value: "question-reveal", emoji: '' },
+        { rank: [Rank.MANAGER], label: "Reveal", description: "Reveal the user tag", value: "question-reveal", emoji: '👁️' },
         { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: "Log", description: "Log question channel", value: "question-log", emoji: '📁' },
         { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: "Change Details", description: "Change details of the question", value: "question-details-change", emoji: '✍️' },
     ];
