@@ -53,17 +53,18 @@ namespace Components {
 
 
     const channelOptionList: (MessageSelectOptionData & { rank: Rank[] })[] = [
-        { rank: [Rank.MANAGER], label: "Delete", description: "Delete the question", value: "question-del" },
-        { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: "Lock", description: "Lock the question", value: "question-lock" },
-        { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: "Unlock", description: "Unlock the question", value: "question-unlock" },
-        { rank: [Rank.MANAGER], label: "Reveal", description: "Reveal the user tag", value: "question-reveal" },
-        { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: "Log", description: "Log question channel", value: "question-log" },
-        { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: "Change Details", description: "Change details of the question", value: "question-details-change" },
+        { rank: [Rank.MEMBER, Rank.TRUSTED, Rank.SUPERVISOR, Rank.MANAGER], label: "Delete", description: "Delete the question", value: "question-del", emoji: '❌' },
+        { rank: [Rank.TRUSTED, Rank.SUPERVISOR, Rank.MANAGER], label: "Lock", description: "Lock the question", value: "question-lock", emoji: '🔒' },
+        { rank: [Rank.TRUSTED, Rank.SUPERVISOR, Rank.MANAGER], label: "Unlock", description: "Unlock the question", value: "question-unlock", emoji: '🔓' },
+        { rank: [Rank.MANAGER], label: "👁️ Reveal", description: "Reveal the user tag", value: "question-reveal", emoji: '' },
+        { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: "Log", description: "Log question channel", value: "question-log", emoji: '📁' },
+        { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: "Change Details", description: "Change details of the question", value: "question-details-change", emoji: '✍️' },
     ];
     export async function manageQuestionMenu(member: GuildMember) {
         const manageQuestionMenu = new MessageSelectMenu().setCustomId('channel-mng').setPlaceholder('Choose an option');
         const rankHandler = await RankHandler.createHandler(member);
-        manageQuestionMenu.addOptions(channelOptionList.filter(o => rankHandler.getManageRanks().every(rank => o.rank.includes(rank))));
+        const memberRanks = rankHandler.getManageRanks();
+        manageQuestionMenu.addOptions(channelOptionList.filter(option => option.rank.some(rank => memberRanks.includes(rank))));
         return new MessageActionRow().addComponents(manageQuestionMenu);
     }
 
@@ -93,56 +94,56 @@ namespace Components {
     }
 
     const detailsOptionList: (MessageSelectOptionData)[] = [
-        { label: "Title", description: "Delete the question", value: "change-title" },
-        { label: "Description", description: "Lock the question", value: "change-description" },
-        // { label: "Anonymous", description: "Unlock the question", value: "change-anonymous" },
+        { label: "Title", description: "Delete the question", value: "change-title", emoji: '✍️' },
+        { label: "Description", description: "Lock the question", value: "change-description", emoji: '✍️' },
     ];
 
     export function changeDetails() {
-        const changeDetailsMenu = new MessageSelectMenu().setCustomId('change-dtl').setPlaceholder('Choose an option');
+        const changeDetailsMenu = new MessageSelectMenu().setCustomId('change-dtl').setPlaceholder('✍️ Choose An Option');
         changeDetailsMenu.addOptions(detailsOptionList)
         return new MessageActionRow().addComponents(changeDetailsMenu);
     }
 
     const memberOptionList: (MessageSelectOptionData & { rank: Rank[] })[] = [
-        { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: "Kick", description: "Kicks member out of the server", value: "mbr-kick" },
-        { rank: [Rank.MANAGER], label: "Ban", description: "Bans member out of the server", value: "mbr-ban" },
-        { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: "Block", description: "Opens block system", value: "mbr-block" },
-        { rank: [Rank.MANAGER], label: "Notes", description: "Opens note system", value: "mbr-note" },
-        { rank: [Rank.MANAGER], label: "Management Message", description: "Send management message to member", value: "mbr-management-msg" },
+        { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: "Kick", description: "Kicks member out of the server", value: "mbr-kick", emoji: '🦵' },
+        { rank: [Rank.MANAGER], label: "Ban", description: "Bans member out of the server", value: "mbr-ban", emoji: '🛑' },
+        { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: "Block", description: "Opens block system", value: "mbr-block", emoji: '🚫' },
+        { rank: [Rank.MANAGER], label: "Notes", description: "Opens note system", value: "mbr-note", emoji: '🗒️' },
+        { rank: [Rank.MANAGER], label: "Management Message", description: "Send management message to member", value: "mbr-management-msg", emoji: '🤵' },
     ];
 
     export async function memberManagementMenu(member: GuildMember) {
-        const memberManagementMenu = new MessageSelectMenu().setCustomId('mbr-mng').setPlaceholder('Choose an option');
+        const memberManagementMenu = new MessageSelectMenu().setCustomId('mbr-mng').setPlaceholder('💻 Choose An Option');
         const rankHandler = await RankHandler.createHandler(member);
         memberManagementMenu.addOptions(memberOptionList.filter(o => rankHandler.getManageRanks().every(rank => o.rank.includes(rank))));
         return new MessageActionRow().addComponents(memberManagementMenu);
     }
 
-    const memberBlockOptionList: (MessageSelectOptionData & { rank: string })[] = [
-        { rank: "Manager", label: "3 Hours", description: "Block the member for 3 hours", value: "block-3h" },
-        { rank: "Manager", label: "1 Day", description: "Block the member for 1 day", value: "block-1d" },
-        { rank: "Manager", label: "3 Days", description: "Block the member for 3 days", value: "block-3d" },
-        { rank: "Manager", label: "1 Week", description: "Block the member for 1 week", value: "block-1w" },
-        { rank: "Manager", label: "1 Month", description: "Block the member for 1 month", value: "block-1m" },
-        { rank: "Manager", label: "Unblock", description: "Unblock the member", value: "block-unblock" },
+    const memberBlockOptionList: (MessageSelectOptionData & { rank: Rank[] })[] = [
+        { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: "3 Hours", description: "Block the member for 3 hours", value: "block-3h", emoji: '🕐' },
+        { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: "1 Day", description: "Block the member for 1 day", value: "block-1d", emoji: '🕦' },
+        { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: "3 Days", description: "Block the member for 3 days", value: "block-3d", emoji: '🕗' },
+        { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: "1 Week", description: "Block the member for 1 week", value: "block-1w", emoji: '🕤' },
+        { rank: [Rank.MANAGER], label: "1 Month", description: "Block the member for 1 month", value: "block-1m", emoji: '📅' },
+        { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: "Unblock", description: "Unblock the member", value: "block-unblock", emoji: '🔄' },
     ];
 
-    export function memberBlockMenu() {
-        const memberBlockMenu = new MessageSelectMenu().setCustomId('block-mbr').setPlaceholder("For how long?");
-        memberBlockMenu.addOptions(memberBlockOptionList.filter(o => o.rank === "Manager"));
+    export async function memberBlockMenu(member: GuildMember) {
+        const memberBlockMenu = new MessageSelectMenu().setCustomId('block-mbr').setPlaceholder("⏳ For how long?");
+        const rankHandler = await RankHandler.createHandler(member);
+        memberBlockMenu.addOptions(memberBlockOptionList.filter(o => rankHandler.getManageRanks().every(rank => o.rank.includes(rank))));
         return new MessageActionRow().addComponents(memberBlockMenu);
     };
 
     const memberNoteOptionList: (MessageSelectOptionData & { rank: string })[] = [
-        { rank: "Manager", label: "Add Note", description: "Add note to member.", value: "note-add" },
-        { rank: "Manager", label: "Remove Note", description: "Remove note from member.", value: "note-remove" },
-        { rank: "Manager", label: "Show Notes", description: "Show all member notes.", value: "note-show" },
-        { rank: "Manager", label: "Reset All Notes", description: "Delete all member notes.", value: "note-reset" },
+        { rank: "Manager", label: "Add Note", description: "Add note to member.", value: "note-add", emoji: '📝' },
+        { rank: "Manager", label: "Remove Note", description: "Remove note from member.", value: "note-remove", emoji: '🧽' },
+        { rank: "Manager", label: "Show Notes", description: "Show all member notes.", value: "note-show", emoji: '🗄️' },
+        { rank: "Manager", label: "Reset All Notes", description: "Delete all member notes.", value: "note-reset", emoji: '🗑️' },
     ];
 
     export function memberNoteMenu() {
-        const memberNoteMenu = new MessageSelectMenu().setCustomId('note-mbr').setPlaceholder("Choose action");
+        const memberNoteMenu = new MessageSelectMenu().setCustomId('note-mbr').setPlaceholder("🗒️ Choose Note Action");
         memberNoteMenu.addOptions(memberNoteOptionList.filter(o => o.rank === "Manager"));
         return new MessageActionRow().addComponents(memberNoteMenu);
     }

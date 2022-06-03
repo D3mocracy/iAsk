@@ -71,7 +71,7 @@ class Config {
     static readonly noSureButton: string = "No";
 
     @configurable()
-    static readonly succsesMsg: string = "Great! I have sent the question, let's wait for answers.";
+    static readonly succsesMsg: string = "Great! I have sent the question, let's wait for answers. Meanwhile you can manage your question by writing !question [channelID]";
 
     @configurable()
     static readonly managePrefix: string = "!manage";

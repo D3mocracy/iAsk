@@ -31,6 +31,7 @@ class NoteManageHanlder {
         if (!this.notes || !this.interaction.channel) return;
         const embed = new MessageEmbed({
             title: "Member Notes",
+            color: 'GREY',
             description: this.notes.map((n, i) =>
                 `**${i + 1}) ** ${n.content}`
             ).join('\n')

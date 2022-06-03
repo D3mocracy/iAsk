@@ -24,10 +24,20 @@ namespace Utils {
         return bot.users.cache.get(userId);
     }
 
-    export function convertIDtoMemberFromGuild(bot: Client, memberId: string, guildId: string) {
+    export function convertIDtoMemberFromGuild(bot: Client, memberId: string, guildId: string): GuildMember {
         const guild = bot.guilds.cache.get(guildId);
-        if (!guild) return;
-        return guild.members.cache.get(memberId);
+        if (!guild) return {} as any;
+        return guild.members.cache.get(memberId) as GuildMember;
+    }
+
+    export function getRemainTime(member: GuildMember): string | undefined {
+        const now = new Date();
+        if (!member.communicationDisabledUntil) return undefined;
+        const millisecond = member.communicationDisabledUntil.getTime() - now.getTime();
+        const seconds = Math.floor((millisecond / 1000) % 60),
+            minutes = Math.floor((millisecond / (1000 * 60)) % 60),
+            hours = Math.floor((millisecond / (1000 * 60 * 60)) % 24)
+        return `${hours}h ${minutes}m ${seconds}s`;
     }
 
 }

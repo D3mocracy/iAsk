@@ -137,14 +137,8 @@ class SetupHanlder {
         if (content === "fast") { await this.sendSetupMessage(); return; }
         await this.sendMessageWithDelay("Oh.. Hi there little strager", 2);
         await this.sendMessageWithDelay("Let me introduce myself, my name is iAsk and I will be your assistant for the setup today", 3);
-        await this.sendMessageWithDelay("Let's begin the setup procces.", 1);
-        await this.sendMessageWithDelay("Your are about to setup your community, which means you will be asked for some id's", 3);
-        await this.sendMessageWithDelay("ID's like catagories, channels and even roles.", 2);
-        await this.sendMessageWithDelay("You can get those id's by turn on the developer options on you discord client.", 3);
-        await this.sendMessageWithDelay("If you don't want to do it you don't have to. I suggested the helper buttons (you will understand in a minute)", 4);
-        await this.sendMessageWithDelay("You can click on one of the helper button (e.g: Channel Helper Button) to get a list of all the channels here with their id", 4);
-        await this.sendMessageWithDelay("Once you finish the setup procces, your guild will be registered in my system and members will be able to start using all the features! isn't it exciting?", 5);
-        await this.sendMessageWithDelay("What are we waiting for? Let's begin :D", 2);
+        await this.sendMessageWithDelay("All you have to do is pick a setup option from the menu below and write an ID, you can get the id's from the helper buttons", 4);
+        await this.sendMessageWithDelay("What are we waiting for? Let's begin :D", 4);
         await this.sendSetupMessage();
     }
 

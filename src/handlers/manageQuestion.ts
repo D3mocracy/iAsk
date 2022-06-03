@@ -8,6 +8,7 @@ import Components from "../embedsAndComps/components";
 import LogHandler from "./log";
 import SetupHanlder from "./setup";
 import Utils from "../utils";
+import RankHandler, { Rank } from "./rank";
 
 class ManageQuestionHandler {
     private question: Question = {} as any;
@@ -38,6 +39,17 @@ class ManageQuestionHandler {
         this.questionChannel = await (await this.bot.guilds.fetch(this.question.guildId)).channels.fetch(this.questionChannelId) as any;
     }
 
+    async checkQuestionBelongToMember() {
+        return this.sender.id === this.question.authorId;
+    }
+
+    async memberManageQuestionComp(hours: number) {
+        if (!this.bot || !this.sender || !this.question.guildId) return;
+        const member = Utils.convertIDtoMemberFromGuild(this.bot, this.sender.id, this.question.guildId) as GuildMember;
+
+    }
+
+
     async manageQuestionComp() {
         if (!this.bot || !this.sender || !this.question.guildId) return;
         const member = Utils.convertIDtoMemberFromGuild(this.bot, this.sender.id, this.question.guildId) as GuildMember;
@@ -51,14 +63,40 @@ class ManageQuestionHandler {
     async log(toolName: string) {
         const guild = await this.bot.guilds.fetch(this.question.guildId as string);
         const channelLog = await guild.channels.fetch((await SetupHanlder.getConfigObject(this.question.guildId as string)).manageToolLogChannelID)
-        //logManagerTool(bot: Client, logChannel: TextChannel, toolName: string, questionId: string, tag: string) {
         LogHandler.logManagerTool(this.bot, channelLog as TextChannel, toolName, this.question.channelId as string, this.sender.tag);
+    }
+
+    async checkIfCanDelete(): Promise<boolean> {
+        if (!this.question.guildId) return false;
+        const guild = await this.bot.guilds.fetch(this.question.guildId);
+        const channel = await guild.channels.fetch(this.questionChannelId);
+        const rankHandler = await RankHandler.createHandler(Utils.convertIDtoMemberFromGuild(this.bot, this.sender.id, guild.id));
+        if (!channel) return false;
+        const hours = Math.floor((new Date().valueOf() - channel.createdAt.valueOf()) / 3600000);
+
+        if (rankHandler.hasRank(Rank.SUPERVISOR) || rankHandler.hasRank(Rank.MANAGER)) return true;
+
+        if (rankHandler.hasRank(Rank.TRUSTED)) {
+            if (hours < 12) {
+                await this.dmChannel.send(`As a trusted member you can delete a question after 12 hours, its been only ${hours}`);
+            }
+            return hours > 12;
+        }
+        if (rankHandler.hasRank(Rank.MEMBER)) {
+            if (hours < 24) {
+                await this.dmChannel.send(`As a member you can delete a question after 24 hours, its been have only ${hours}`);
+            }
+            return hours > 24;
+        }
+        return true;
+
     }
 
     async deleteQuestion() {
         if (!this.question.deleted) {
             if (!this.question.guildId) return;
             const guild = await this.bot.guilds.fetch(this.question.guildId);
+            if (!(await this.checkIfCanDelete())) return;
             const questionLogChannel = guild.channels.cache.get((await SetupHanlder.getConfigObject(this.question.guildId)).questionLogChannelID) as any;
             await LogHandler.logQuestionChannel(this.questionChannel, questionLogChannel)
             await this.questionChannel.delete();

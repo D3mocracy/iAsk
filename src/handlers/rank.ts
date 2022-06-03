@@ -12,6 +12,7 @@ class RankHandler {
     private constructor(private member: GuildMember) { }
 
     private converter: { [key in Rank]: Role } = {} as any;
+    private ranks = [Rank.MEMBER, Rank.NOTIFICATION, Rank.TRUSTED, Rank.SUPERVISOR, Rank.MANAGER];
 
     static async createHandler(member: GuildMember) {
         const handler = new RankHandler(member);
@@ -35,7 +36,7 @@ class RankHandler {
         };
     }
 
-    isRank(rank: Rank) {
+    hasRank(rank: Rank) {
         return !!this.member.roles.cache.find(r => r.id === this.converter[rank].id);
     }
 
@@ -44,12 +45,30 @@ class RankHandler {
     }
 
     getManageRoles() {
-        return this.member.roles.cache.filter(r => r.id === this.converter[Rank.MANAGER].id || r.id === this.converter[Rank.SUPERVISOR].id)
+        const roles = this.member.roles.cache.filter(r => {
+            return !!this.ranks.map(rank => this.converter[rank].id === r.id)
+        });
+        roles.delete(this.member.guild.roles.everyone.id);
+        return roles;
     }
 
     getManageRanks() {
         const ranks = [Rank.MEMBER, Rank.NOTIFICATION, Rank.TRUSTED, Rank.SUPERVISOR, Rank.MANAGER];
-        return ranks.filter(rank => this.getManageRoles().every(role => role.id === this.converter[rank].id))
+        return ranks.filter(rank => !!this.getManageRoles().find(role => this.converter[rank].id === role.id));
+    }
+
+    getRank(rank: Rank) {
+        return this.converter[rank];
+    }
+
+    async removeRank(rank: Rank) {
+        const rankID = this.converter[rank].id;
+        if (this.hasRank(rank))
+            await this.member.roles.remove(rankID);
+    }
+
+    async addRank(rank: Rank) {
+        await this.member.roles.add(this.converter[rank]);
     }
 }
 

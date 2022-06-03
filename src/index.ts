@@ -1,5 +1,5 @@
 require("dotenv").config();
-import { Client, DMChannel, Intents, MessageActionRow, SelectMenuInteraction, TextChannel } from "discord.js";
+import { Client, DMChannel, Intents, MessageActionRow, SelectMenuInteraction, TextChannel, User } from "discord.js";
 import Config from "./config";
 import DataBase from "./db";
 import Components from "./embedsAndComps/components";
@@ -35,7 +35,6 @@ client.on("messageCreate", async message => {
             const managerNoteHandler = await NewNoteHandler.createHandler(message.author);
             managerNoteHandler.setNoteContent(message);
             await managerNoteHandler.save();
-            await ManageMemberHanlder.exit(message.author.id);
             return;
         }
 
@@ -59,6 +58,19 @@ client.on("messageCreate", async message => {
             await changeDetailHandler?.save();
             await changeDetailHandler.exit();
             return;
+        }
+
+        if (args[0].toLowerCase() === "!question") {
+            if (args.length < 2) return;
+            const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, args[1], message.channel, message.author);
+            if (!manageQuestionHandler) return;
+            if (!(await manageQuestionHandler.checkQuestionBelongToMember())) return;
+            const guild = await client.guilds.fetch(manageQuestionHandler.questionObject.guildId as string)
+            const channel = await guild.channels.fetch(manageQuestionHandler.questionObject.channelId as string);
+            if (!channel) return;
+            const hours = Math.floor((new Date().valueOf() - channel.createdAt.valueOf()) / 3600000);
+            await message.channel.send({ embeds: [Embeds.questionManageMember(channel.id)], components: [await manageQuestionHandler.manageQuestionComp() as MessageActionRow] })
+
         }
 
         if (args[0].toLowerCase() === Config.managePrefix) {
@@ -105,9 +117,10 @@ client.on("messageCreate", async message => {
             return;
         }
     } else if (message.channel.type === "GUILD_TEXT" && message.author !== client.user) {
-        const rankHandler = await RankHandler.createHandler(message.member!);
-        console.log((rankHandler.getManageRoles())?.map(r => r.name));
-
+        if (message.content === "notif") {
+            await (await message.channel.send({ embeds: [Embeds.notificationMessage] })).react('🔔');
+            await message.delete();
+        }
         const args = message.content.split(" ");
         if (args[0] === "!setup" && message.member?.permissions.has('ADMINISTRATOR')) {
             if (!message.guildId) return;
@@ -164,16 +177,19 @@ client.on('interactionCreate', async interaction => {
 
         } else if (interaction.customId === "choose-guild-manage-member") {
             const memberId = await ManageMemberHanlder.getMemberIdFromDBByManagerId(interaction.user);
-            const manageMemberHanlder = await ManageMemberHanlder.createHandler(client, interaction.user, memberId);
+            const target: User = Utils.convertIDtoUser(client, memberId) as User;
+            const manageMemberHanlder = await ManageMemberHanlder.createHandler(client, interaction.user, target);
             await manageMemberHanlder.chooseGuild(interaction.values[0]);
             await manageMemberHanlder.save();
-            await interaction.update({ embeds: [Embeds.memberManageMessage(memberId, interaction.values[0])], components: [await manageMemberHanlder.manageMemberComp() as MessageActionRow] });
+            await manageMemberHanlder.updateInteractionToMemberManageMenu(interaction);
 
         } else if (interaction.customId === "channel-mng") {
             const managedChannelId: string = (interaction as SelectMenuInteraction).message.embeds[0].footer?.text.replaceAll(`${Config.channelIDFooter} `, "") as any;
             const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, managedChannelId, interaction.channel, interaction.user);
             if (!manageQuestionHandler) return;
-
+            // const channel = await guild.channels.fetch(manageQuestionHandler.questionObject.channelId as string);
+            // if (!channel) return;
+            // const hours = Math.floor((new Date().valueOf() - channel.createdAt.valueOf()) / 3600000);
             const options: any = {
                 "question-del": async () => manageQuestionHandler.deleteQuestion(),
                 "question-lock": async () => manageQuestionHandler.lockQuestion(),
@@ -185,8 +201,6 @@ client.on('interactionCreate', async interaction => {
             await manageQuestionHandler.log(interaction.values[0]);
             await options[interaction.values[0]]();
             await manageQuestionHandler.save();
-            // const comp = await manageQuestionHandler.manageQuestionComp();
-            // if (!comp) return;
             interaction.update({ components: [await manageQuestionHandler.manageQuestionComp() as MessageActionRow] });
 
         } else if (interaction.customId === "change-dtl") {
@@ -211,7 +225,6 @@ client.on('interactionCreate', async interaction => {
                 "mbr-block": async () => manageMemberHanlder.updateToBlockMenu(interaction),
                 "mbr-note": async () => manageMemberHanlder.updateToNoteMenu(interaction),
                 "mbr-management-msg": async () => manageMemberHanlder.insertDetailsToManagementMessageHandler(interaction),
-                // "mbr-rank": async () => manageMemberHanlder.chooseChangeDetail(),
             }
 
             await options[interaction.values[0]]();
@@ -266,6 +279,22 @@ client.on('interactionCreate', async interaction => {
         interaction.update({ embeds: [], components: [] });
     }
 });
+
+client.on('messageReactionAdd', async (react, user) => {
+    const message = react.message.embeds[0];
+    if (message.title !== Embeds.notificationMessage.title && message.description !== Embeds.notificationMessage.description) return;
+    if (!react.message.guildId) return;
+    if (react.emoji.name === '🔔') {
+        const member = Utils.convertIDtoMemberFromGuild(client, user.id, react.message.guildId);
+        const rankHandler = await RankHandler.createHandler(member);
+        rankHandler.hasRank(Rank.NOTIFICATION) ? await rankHandler.removeRank(Rank.NOTIFICATION) : await rankHandler.addRank(Rank.NOTIFICATION);
+        if (!user.bot)
+            await react.users.remove(user as User);
+    } else {
+        await react.remove();
+    }
+
+})
 
 client.on('guildCreate', async g => {
     const setupChannel = await g.channels.create("setup", { type: 'GUILD_TEXT' });

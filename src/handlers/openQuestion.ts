@@ -1,4 +1,4 @@
-import { CategoryChannelResolvable, Client, DMChannel, Guild, GuildMember, User } from "discord.js";
+import { CategoryChannelResolvable, Client, DMChannel, Guild, GuildMember, User, Util } from "discord.js";
 import Config from "../config";
 import Components from "../embedsAndComps/components";
 import DataBase from "../db";
@@ -6,6 +6,8 @@ import Embeds from "../embedsAndComps/Embeds";
 import { Question } from "../types";
 import { MissingGuildIdError } from "../error";
 import SetupHanlder from "./setup";
+import RankHandler, { Rank } from "./rank";
+import Utils from "../utils";
 
 class OpenQuestionHandler {
     private channel: DMChannel;
@@ -67,6 +69,8 @@ class OpenQuestionHandler {
         this.question.channelId = guildChannel.id;
         await this.channel.send({ embeds: [Embeds.questionMessage(this.question.title || "Error 404", this.question.description || "Error 404", this.question.anonymous ? "Anonymous" : `${this.user.tag}`, this.question.channelId)] })
         await guildChannel.send({ embeds: [Embeds.questionMessage(this.question.title || "Error 404", this.question.description || "Error 404", this.question.anonymous ? "Anonymous" : `${this.user.tag}`, this.question.channelId)] });
+        const rankHandler = await RankHandler.createHandler(Utils.convertIDtoMemberFromGuild(this.bot, this.user.id, guild.id));
+        await (await guildChannel.send(`${rankHandler.getRank(Rank.NOTIFICATION)}`)).delete();
     }
 
     get questionObject() {

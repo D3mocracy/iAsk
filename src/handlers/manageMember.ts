@@ -23,10 +23,14 @@ class ManageMemberHanlder {
         await DataBase.memberManagementCollection.updateOne({ managerId: this.manager.id }, { $set: this.action }, { upsert: true });
     }
 
-    async manageMemberComp() {
-        if (!this.bot || !this.manager.id || !this.action.guildId) return;
-        const member = Utils.convertIDtoMemberFromGuild(this.bot, this.manager.id, this.action.guildId) as GuildMember;
-        return Components.memberManagementMenu(member);
+    getManagerAsMember(): GuildMember {
+        if (!this.action.guildId) return {} as any;
+        return Utils.convertIDtoMemberFromGuild(this.bot, this.manager.id, this.action.guildId) as GuildMember;
+    }
+
+    async updateInteractionToMemberManageMenu(interaction: SelectMenuInteraction) {
+        await interaction.update({ embeds: [Embeds.memberManageMessage(this.member, interaction.values[0])], components: [await Components.memberManagementMenu(this.getManagerAsMember())] });
+
     }
 
     static async getMemberIdFromDBByManagerId(manager: User) {
@@ -39,7 +43,7 @@ class ManageMemberHanlder {
         this.action = { managerId: this.manager.id, memberId: this.member.id }
         const user = Utils.convertIDtoUser(this.bot, this.member.id);
         if (!user) return;
-        if ((await Utils.commonGuildCheck(this.bot, user, this.manager)).length !== 0) {
+        if ((await Utils.commonGuildCheck(this.bot, user, this.manager as User)).length !== 0) {
             await channel.send({ embeds: [Embeds.chooseGuildManageMember], components: [await Components.chooseGuildMenuManageMember(this.bot, user, this.manager)] });
         } else {
             await channel.send("Error: can't find common guild between u 2, maybe you should invite him...")
@@ -49,10 +53,6 @@ class ManageMemberHanlder {
 
     async chooseGuild(guildId: string) {
         this.action.guildId = guildId;
-    }
-
-    static async exit(managerId: string) {
-        await DataBase.memberManagementCollection.deleteOne({ managerId });
     }
 
     async kickMember(interaction: SelectMenuInteraction) {
@@ -70,7 +70,7 @@ class ManageMemberHanlder {
     }
 
     async updateToBlockMenu(interaction: SelectMenuInteraction) {
-        await interaction.update({ embeds: [Embeds.blockMemberMessage(this.action.memberId, this.action.guildId as string)], components: [Components.memberBlockMenu()] });
+        await interaction.update({ embeds: [Embeds.blockMemberMessage(this.action.memberId, this.action.guildId as string)], components: [await Components.memberBlockMenu(this.getManagerAsMember())] });
     }
 
     async blockMember(interaction: SelectMenuInteraction) {
