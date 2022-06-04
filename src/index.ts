@@ -69,9 +69,8 @@ client.on("messageCreate", async message => {
             const guild = await client.guilds.fetch(manageQuestionHandler.questionObject.guildId as string)
             const channel = await guild.channels.fetch(manageQuestionHandler.questionObject.channelId as string);
             if (!channel) return;
-            const hours = Math.floor((new Date().valueOf() - channel.createdAt.valueOf()) / 3600000);
             await message.channel.send({ embeds: [Embeds.questionManageMember(channel.id)], components: [await manageQuestionHandler.manageQuestionComp() as MessageActionRow] })
-
+            return;
         }
 
         if (args[0].toLowerCase() === Config.managePrefix) {
@@ -125,6 +124,7 @@ client.on("messageCreate", async message => {
         }
     } else if (message.channel.type === "GUILD_TEXT" && message.author !== client.user) {
         if (message.content === "!notif") {
+            if (!message.member?.permissions.has('ADMINISTRATOR')) return;
             await (await message.channel.send({ embeds: [Embeds.notificationMessage] })).react('🔔');
             await message.delete();
         }
@@ -296,6 +296,7 @@ client.on('interactionCreate', async interaction => {
 });
 
 client.on('messageReactionAdd', async (react, user) => {
+    if (user.bot) return;
     const message = react.message.embeds[0];
     if (message.title !== Embeds.notificationMessage.title && message.description !== Embeds.notificationMessage.description) return;
     if (!react.message.guildId) return;
@@ -303,8 +304,7 @@ client.on('messageReactionAdd', async (react, user) => {
         const member = Utils.convertIDtoMemberFromGuild(client, user.id, react.message.guildId);
         const rankHandler = await RankHandler.createHandler(member);
         rankHandler.hasRank(Rank.NOTIFICATION) ? await rankHandler.removeRank(Rank.NOTIFICATION) : await rankHandler.addRank(Rank.NOTIFICATION);
-        if (!user.bot)
-            await react.users.remove(user as User);
+        await react.users.remove(user as User);
     } else {
         await react.remove();
     }
