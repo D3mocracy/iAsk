@@ -185,6 +185,11 @@ client.on('interactionCreate', async interaction => {
             const memberId = await ManageMemberHanlder.getMemberIdFromDBByManagerId(interaction.user);
             const target: User = Utils.convertIDtoUser(client, memberId) as User;
             const manageMemberHanlder = await ManageMemberHanlder.createHandler(client, interaction.user, target);
+            if (target.bot) {
+                interaction.update({ content: `Maybe I will try to !manage human ${interaction.user.username} how would that feel?`, embeds: [], components: [] });
+                return;
+            }
+
             await manageMemberHanlder.chooseGuild(interaction.values[0]);
             if (await manageMemberHanlder.isStaff()) {
                 await manageMemberHanlder.save();
