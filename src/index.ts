@@ -14,6 +14,7 @@ import NoteManageHanlder from "./handlers/noteManage";
 import ManagementMessageHanlder from "./handlers/managementMessage";
 import SetupHanlder from "./handlers/setup";
 import RankHandler, { Rank } from "./handlers/rank";
+import { Question, SetupConfig } from "./types";
 export const client: Client = new Client({ partials: ["CHANNEL"], intents: new Intents(32767) });
 
 
@@ -310,6 +311,20 @@ client.on('messageReactionAdd', async (react, user) => {
 
 })
 
+client.on('channelDelete', async c => {
+    if (!c.isText()) return;
+    const guild = (c as TextChannel).guild;
+    const channel = (c as TextChannel);
+    const config: SetupConfig = await DataBase.configCollection.findOne({ guildId: guild.id }) as any;
+    if (!config.questionCatagory) return;
+    const questionCatagory = await guild.channels.fetch(config.questionCatagory);
+    if (!questionCatagory || questionCatagory.type !== "GUILD_CATEGORY") return;
+    if (channel.parent !== questionCatagory) return;
+    const question: Question = await DataBase.questionsCollection.findOne({ guildId: guild.id, channelId: channel.id }) as any;
+    if (!question) return;
+    await DataBase.questionsCollection.updateOne({ guildId: question.guildId, channelId: question.channelId }, { $set: { deleted: true } });
+})
+
 client.on('guildCreate', async g => {
     const setupChannel = await g.channels.create("setup", { type: 'GUILD_TEXT' });
     await setupChannel.send({ embeds: [Embeds.setupHereMessage] });
@@ -317,7 +332,9 @@ client.on('guildCreate', async g => {
 
 client.on('guildMemberAdd', async m => {
     const rankHandler = await RankHandler.createHandler(m);
-    await rankHandler.setRanks(Rank.MEMBER);
+    try {
+        await rankHandler.setRanks(Rank.MEMBER);
+    } catch (error) { }
 })
 
 DataBase.init().then(() => client.login(Config.TOKEN));
