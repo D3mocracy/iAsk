@@ -4,6 +4,7 @@ import Components from "../embedsAndComps/components";
 import Embeds from "../embedsAndComps/Embeds";
 import { Action } from "../types";
 import Utils from "../utils";
+import RankHandler, { Rank } from "./rank";
 
 class ManageMemberHanlder {
     private action: Action = {} as Action;
@@ -53,6 +54,13 @@ class ManageMemberHanlder {
 
     async chooseGuild(guildId: string) {
         this.action.guildId = guildId;
+    }
+
+    async isStaff(): Promise<boolean> {
+        if (!this.action.guildId) return false;
+        const member = await (await this.bot.guilds.fetch(this.action.guildId)).members.fetch(this.manager.id);
+        const rankHandler = await RankHandler.createHandler(member);
+        return rankHandler.hasRank(Rank.SUPERVISOR) || rankHandler.hasRank(Rank.MANAGER);
     }
 
     async kickMember(interaction: SelectMenuInteraction) {

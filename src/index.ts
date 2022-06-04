@@ -78,7 +78,13 @@ client.on("messageCreate", async message => {
                 if (args[1] === Config.manageChannel) {
                     const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, args[2], message.channel as DMChannel, message.author);
                     if (!manageQuestionHandler) return;
-                    await message.reply({ embeds: [Embeds.questionManageMessage(args[2])], components: [await manageQuestionHandler.manageQuestionComp() as MessageActionRow] });
+                    if (await manageQuestionHandler.isStaff()) {
+                        await message.reply({ embeds: [Embeds.questionManageMessage(args[2])], components: [await manageQuestionHandler.manageQuestionComp() as MessageActionRow] });
+                    } else {
+                        await message.reply("Sorry, you are not a staff member on that guild.");
+                        return;
+                    }
+
 
                 } else if (args[1] === Config.manageMember) {
                     const user = await client.users.fetch(args[2])
@@ -117,7 +123,7 @@ client.on("messageCreate", async message => {
             return;
         }
     } else if (message.channel.type === "GUILD_TEXT" && message.author !== client.user) {
-        if (message.content === "notif") {
+        if (message.content === "!notif") {
             await (await message.channel.send({ embeds: [Embeds.notificationMessage] })).react('🔔');
             await message.delete();
         }
@@ -180,16 +186,19 @@ client.on('interactionCreate', async interaction => {
             const target: User = Utils.convertIDtoUser(client, memberId) as User;
             const manageMemberHanlder = await ManageMemberHanlder.createHandler(client, interaction.user, target);
             await manageMemberHanlder.chooseGuild(interaction.values[0]);
-            await manageMemberHanlder.save();
-            await manageMemberHanlder.updateInteractionToMemberManageMenu(interaction);
+            if (await manageMemberHanlder.isStaff()) {
+                await manageMemberHanlder.save();
+                await manageMemberHanlder.updateInteractionToMemberManageMenu(interaction);
+            } else {
+                await interaction.update({ content: "Sorry, you are not a staff member on that guild.", embeds: [], components: [] })
+                return;
+            }
+
 
         } else if (interaction.customId === "channel-mng") {
             const managedChannelId: string = (interaction as SelectMenuInteraction).message.embeds[0].footer?.text.replaceAll(`${Config.channelIDFooter} `, "") as any;
             const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, managedChannelId, interaction.channel, interaction.user);
             if (!manageQuestionHandler) return;
-            // const channel = await guild.channels.fetch(manageQuestionHandler.questionObject.channelId as string);
-            // if (!channel) return;
-            // const hours = Math.floor((new Date().valueOf() - channel.createdAt.valueOf()) / 3600000);
             const options: any = {
                 "question-del": async () => manageQuestionHandler.deleteQuestion(),
                 "question-lock": async () => manageQuestionHandler.lockQuestion(),

@@ -158,6 +158,13 @@ class ManageQuestionHandler {
         this.question.anonymous = !this.question.anonymous;
     }
 
+    async isStaff(): Promise<boolean> {
+        if (!this.question.guildId) return false;
+        const member = await (await this.bot.guilds.fetch(this.question.guildId)).members.fetch(this.sender.id);
+        const rankHandler = await RankHandler.createHandler(member);
+        return rankHandler.hasRank(Rank.MANAGER) || rankHandler.hasRank(Rank.SUPERVISOR);
+    }
+
 }
 
 export default ManageQuestionHandler;

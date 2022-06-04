@@ -1,4 +1,4 @@
-import { Guild, GuildMember, Role } from "discord.js";
+import { Guild, GuildMember, Role, User } from "discord.js";
 import SetupHanlder from "./setup";
 
 class RankHandler {
