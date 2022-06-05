@@ -1,4 +1,4 @@
-import { Client, Guild, GuildMember, Intents, User } from "discord.js";
+import { Client, DMChannel, Guild, GuildMember, Intents, Message, User } from "discord.js";
 import DataBase from "./db";
 
 namespace Utils {
@@ -7,13 +7,25 @@ namespace Utils {
     }
 
     export async function commonGuildCheck(bot: Client, ...users: User[]) {
-        const doneGuildsID = await DataBase.configCollection.find({ done: true }).toArray();
+        const doneGuildsID = await DataBase.guildsCollection.find({ done: true }).toArray();
         const guildList: Guild[] = bot.guilds.cache.map(g => g);
 
         const newlist: Guild[] = guildList.filter(g =>
             users.every(u => g.members.cache.find(m => u.id === m.id))
         ).filter(g => !!doneGuildsID.find(d => d.guildId === g.id));
         return newlist;
+    }
+
+    export async function getLastBotMessage(channel: DMChannel): Promise<Message> {
+        return new Promise(async resolve => {
+            await channel.messages.fetch({ limit: 5 }).then(messages => {
+                if (!messages.first()?.author.bot) return;
+                let lastMessage = messages.first();
+
+                return resolve(lastMessage as Message);
+            }).catch(console.error)
+        })
+
     }
 
     export function convertIDToGuild(bot: Client, guildId: string) {

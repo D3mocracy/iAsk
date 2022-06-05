@@ -1,4 +1,4 @@
-import { CategoryChannelResolvable, Client, DMChannel, Guild, GuildMember, User, Util } from "discord.js";
+import { CategoryChannelResolvable, Client, DMChannel, Guild, GuildMember, Message, MessageOptions, User, Util } from "discord.js";
 import Config from "../config";
 import Components from "../embedsAndComps/components";
 import DataBase from "../db";
@@ -23,10 +23,14 @@ class OpenQuestionHandler {
         return handler;
     }
 
+    async getDefaultQuestionMessage() {
+        return { embeds: [Embeds.questionMessage(this.question.title || "Default Title", this.question.description || 'Default Description', `${this.user.tag}`, this.question.channelId, this.question.guildId)] };
+    }
+
     async iHaveAQuestion() {
         this.question.started = true;
         this.question.lock = false;
-        await this.channel.send({ embeds: [Embeds.chooseGuildOpenQuestion], components: [await Components.chooseGuildMenuOpenQuestion(this.bot, this.user)] });
+        await this.channel.send({ embeds: [Embeds.chooseGuildOpenQuestion], components: [await Components.chooseGuildMenuOpenQuestion(this.bot, this.user)] })
     }
 
     async isReachedLimit() {
@@ -38,23 +42,34 @@ class OpenQuestionHandler {
         this.question.guildId = guildId;
     }
 
+    async sureNo() {
+        await this.channel.send({ embeds: [Embeds.sureNo], components: [Components.editButtons()] });
+    }
+
     async chooseTitle(title: string) {
         this.question.title = title;
-        await this.channel.send(Config.chooseDescriptionMessage);
+        await this.channel.send(await this.getDefaultQuestionMessage());
+        await this.channel.send({ content: Config.chooseDescriptionMessage });
     }
 
     async chooseDescription(description: string) {
         this.question.description = description;
-        await this.channel.send({ content: Config.chooseAnonymousMessage, components: [Components.chooseToBeAnonymousButtons()] });
+        await this.channel.send(await this.getDefaultQuestionMessage());
+        await this.channel.send({ content: Config.chooseAnonymousMessage, components: [Components.chooseToBeAnonymousButtons()] })
+
     }
 
-    async chooseAnonymous(anonymous: boolean) {
-        this.question.anonymous = anonymous;
+    async sendSureMessage() {
         await this.channel.send({
             content: Config.askSureMessage,
             embeds: [Embeds.questionMessage(this.question.title || "Error 404", this.question.description || "Error 404", this.question.anonymous ? "Anonymous" : `${this.user.tag}`)],
             components: [Components.chooseSureMessage()]
         });
+    }
+
+    async chooseAnonymous(anonymous: boolean) {
+        this.question.anonymous = anonymous;
+        await this.sendSureMessage();
     }
 
     async deleteQuestion() {

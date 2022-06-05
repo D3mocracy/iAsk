@@ -1,4 +1,3 @@
-import { Guild } from "discord.js";
 import { MongoClient } from "mongodb";
 import Config from "./config";
 
@@ -13,6 +12,7 @@ class DataBase {
     static memberManagementCollection = DataBase.client.db("iAskBot").collection("MemberManagement");
     static noteCollection = DataBase.client.db("iAskBot").collection("Notes");
     static managementMessageCollection = DataBase.client.db("iAskBot").collection("ManagementMessage");
+    static guildsCollection = DataBase.client.db("iAskBot").collection("Guilds");
     static configCollection = DataBase.client.db("iAskBot").collection("Config");
 }
 

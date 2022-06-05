@@ -17,13 +17,13 @@ class SetupHanlder {
     }
 
     async load() {
-        this.config = await DataBase.configCollection.findOne({ guildId: this.channel.guildId }) as any || this.config;
+        this.config = await DataBase.guildsCollection.findOne({ guildId: this.channel.guildId }) as any || this.config;
         this.guild = this.channel.guild;
         this.config.guildId = this.guild.id;
     }
 
     async save() {
-        await DataBase.configCollection.updateOne({ guildId: this.channel.guildId }, { $set: this.config }, { upsert: true });
+        await DataBase.guildsCollection.updateOne({ guildId: this.channel.guildId }, { $set: this.config }, { upsert: true });
     }
 
     async sendSetupMessage() {
@@ -153,18 +153,18 @@ class SetupHanlder {
     }
 
     static async isMissingValuess(guildId: string) {
-        const config: SetupConfig = await DataBase.configCollection.findOne({ guildId }) as any;
+        const config: SetupConfig = await DataBase.guildsCollection.findOne({ guildId }) as any;
         return !!config.done;
     }
 
     static async getMaxQuestion(guildId: string): Promise<Number> {
-        const doc = await DataBase.configCollection.findOne({ guildId });
+        const doc = await DataBase.guildsCollection.findOne({ guildId });
         if (!doc) return 0;
         return doc.maxQuestions;
     }
 
     static async getConfigObject(guildId: string): Promise<SetupConfig> {
-        const doc: SetupConfig = await DataBase.configCollection.findOne({ guildId }) as any;
+        const doc: SetupConfig = await DataBase.guildsCollection.findOne({ guildId }) as any;
         if (!doc) return {} as SetupConfig;
         return doc;
     }

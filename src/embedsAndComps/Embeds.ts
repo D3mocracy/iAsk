@@ -16,6 +16,13 @@ namespace Embeds {
         color: Config.chooseGuildEmbedMessageColorOpenQuesiton
     });
 
+    export const sureNo = new MessageEmbed({
+        title: 'Hah...you almost got me',
+        description: "That's fine, tell me what you wanna do?",
+        footer: { text: 'Please choose one of the options below' },
+        color: 'RED'
+    })
+
     export function questionMessage(title: string, description: string, tag: string, channelId?: string, guildId?: string) {
         const msg = new MessageEmbed({
             author: { name: 'Jump To The Question', iconURL: 'https://i.imgur.com/I7EoZkF.png', url: `https://discord.com/channels/${guildId}/${channelId}` },

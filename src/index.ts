@@ -280,18 +280,45 @@ client.on('interactionCreate', async interaction => {
             return;
         }
         const openQuestionHandler = await OpenQuestionHandler.createHandler(client, interaction.user, interaction.channel);
+        const args = interaction.customId.split("-");
+        if (args[0] === 'edit') {
+
+            await interaction.channel.send(`Please type a new ${args[1]}`);
+            const filter = (m: any) => m.author.id === interaction.user.id;
+            const messageCollector = interaction.channel.createMessageCollector({ filter, max: 1 });
+            messageCollector.on('collect', async msg => {
+                if (args[1] === "title") {
+                    openQuestionHandler.questionObject.title = msg.content;
+                } else if (args[1] === "description") {
+                    openQuestionHandler.questionObject.description = msg.content;
+                }
+
+            });
+            await interaction.update({ components: [] });
+            messageCollector.on('end', async collected => {
+                if (collected.size === 1) {
+                    await openQuestionHandler.save();
+                    await openQuestionHandler.sendSureMessage();
+                }
+            });
+            return;
+        }
         if (openQuestionHandler.questionObject.anonymous === undefined) {
             await openQuestionHandler.chooseAnonymous(interaction.customId === "anon-yes");
+
         } else if (!openQuestionHandler.questionObject.channelId) {
             if (interaction.customId === "sure-yes") {
                 await openQuestionHandler.createChannelOnGuild();
                 await interaction.channel?.send(Config.succsesMsg);
-            } else {
+            } else if (interaction.customId === "sure-no") {
+                await openQuestionHandler.sureNo();
+            } else if (interaction.customId === 'cancel') {
                 await openQuestionHandler.deleteQuestion();
+                await interaction.update({ content: "As you wish..I canceled you question.", embeds: [], components: [] });
             }
         }
         await openQuestionHandler.save();
-        interaction.update({ embeds: [], components: [] });
+        await interaction.update({ embeds: [], components: [] });
     }
 });
 
@@ -315,7 +342,7 @@ client.on('channelDelete', async c => {
     if (!c.isText()) return;
     const guild = (c as TextChannel).guild;
     const channel = (c as TextChannel);
-    const config: SetupConfig = await DataBase.configCollection.findOne({ guildId: guild.id }) as any;
+    const config: SetupConfig = await DataBase.guildsCollection.findOne({ guildId: guild.id }) as any;
     if (!config.questionCatagory) return;
     const questionCatagory = await guild.channels.fetch(config.questionCatagory);
     if (!questionCatagory || questionCatagory.type !== "GUILD_CATEGORY") return;

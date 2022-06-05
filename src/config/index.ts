@@ -1,8 +1,9 @@
-import { ColorResolvable, Message, MessageEmbed, Util } from "discord.js";
+import { ColorResolvable, MessageEmbed, Util } from "discord.js";
 import { config } from "shtrudel";
+import DBHandler from "./dbHandler";
 import DotenvDataSrouce from "./envHandler";
 
-const configurable = config([DotenvDataSrouce]);
+const configurable = config([DotenvDataSrouce, DBHandler]);
 
 class Config {
     @configurable()
@@ -13,9 +14,6 @@ class Config {
 
     @configurable()
     static readonly iHaveAQuestionMessage: string = "i have a question";
-
-    @configurable()
-    static readonly maxQuestionsPerGuildd: number = 2;
 
     @configurable()
     static readonly reachLimitQuestionsError: string = "You have reached the limit.";

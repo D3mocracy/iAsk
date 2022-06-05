@@ -80,6 +80,13 @@ namespace Components {
         return new MessageActionRow().addComponents(yesButton, noButton);
     }
 
+    export function editButtons() {
+        const t = new MessageButton().setCustomId("edit-title").setLabel("Edit Title").setStyle("PRIMARY");
+        const d = new MessageButton().setCustomId("edit-description").setLabel("Edit Description").setStyle("PRIMARY");
+        const c = new MessageButton().setCustomId("cancel").setLabel("Cancel").setStyle("DANGER");
+        return new MessageActionRow().addComponents(c, t, d);
+    }
+
     export function chooseSureManagementMessage() {
         const yesButton = new MessageButton().setCustomId("mng-msg-yes").setLabel(Config.yesSureButton).setStyle("SUCCESS");
         const noButton = new MessageButton().setCustomId("mng-msg-no").setLabel(Config.noSureButton).setStyle("DANGER");
