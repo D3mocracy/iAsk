@@ -2,18 +2,29 @@ import { MongoClient } from "mongodb";
 import Config from "./config";
 
 class DataBase {
-    static readonly client = new MongoClient(Config.mongoURL);
+    static client: MongoClient = {} as any;
 
     static async init() {
+        DataBase.client = new MongoClient(Config.mongoURL);
+
         await DataBase.client.connect();
+
+        DataBase.questionsCollection = DataBase.client.db("iAskBot").collection("Questions");
+        DataBase.detailsManagementCollection = DataBase.client.db("iAskBot").collection("DetailsManagement");
+        DataBase.memberManagementCollection = DataBase.client.db("iAskBot").collection("MemberManagement");
+        DataBase.noteCollection = DataBase.client.db("iAskBot").collection("Notes");
+        DataBase.managementMessageCollection = DataBase.client.db("iAskBot").collection("ManagementMessage");
+        DataBase.guildsCollection = DataBase.client.db("iAskBot").collection("Guilds");
+        DataBase.configCollection = DataBase.client.db("iAskBot").collection("Config");
     }
-    static questionsCollection = DataBase.client.db("iAskBot").collection("Questions");
-    static detailsManagementCollection = DataBase.client.db("iAskBot").collection("DetailsManagement");
-    static memberManagementCollection = DataBase.client.db("iAskBot").collection("MemberManagement");
-    static noteCollection = DataBase.client.db("iAskBot").collection("Notes");
-    static managementMessageCollection = DataBase.client.db("iAskBot").collection("ManagementMessage");
-    static guildsCollection = DataBase.client.db("iAskBot").collection("Guilds");
-    static configCollection = DataBase.client.db("iAskBot").collection("Config");
+
+    static questionsCollection = {} as any;
+    static detailsManagementCollection = {} as any;
+    static memberManagementCollection = {} as any;
+    static noteCollection = {} as any;
+    static managementMessageCollection = {} as any;
+    static guildsCollection = {} as any;
+    static configCollection = {} as any;
 }
 
 export default DataBase;
