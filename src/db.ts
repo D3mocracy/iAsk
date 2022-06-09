@@ -1,4 +1,4 @@
-import { MongoClient } from "mongodb";
+import { Collection, MongoClient } from "mongodb";
 import Config from "./config";
 
 class DataBase {
@@ -16,15 +16,17 @@ class DataBase {
         DataBase.managementMessageCollection = DataBase.client.db("iAskBot").collection("ManagementMessage");
         DataBase.guildsCollection = DataBase.client.db("iAskBot").collection("Guilds");
         DataBase.configCollection = DataBase.client.db("iAskBot").collection("Config");
+        DataBase.languageCollection = DataBase.client.db("iAskBot").collection("Language");
     }
 
-    static questionsCollection = {} as any;
-    static detailsManagementCollection = {} as any;
-    static memberManagementCollection = {} as any;
-    static noteCollection = {} as any;
-    static managementMessageCollection = {} as any;
-    static guildsCollection = {} as any;
-    static configCollection = {} as any;
+    static questionsCollection: Collection = {} as any;
+    static detailsManagementCollection: Collection = {} as any;
+    static memberManagementCollection: Collection = {} as any;
+    static noteCollection: Collection = {} as any;
+    static managementMessageCollection: Collection = {} as any;
+    static guildsCollection: Collection = {} as any;
+    static configCollection: Collection = {} as any;
+    static languageCollection: Collection = {} as any;
 }
 
 export default DataBase;

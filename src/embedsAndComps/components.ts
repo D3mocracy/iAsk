@@ -1,13 +1,14 @@
 import { Client, Guild, GuildMember, MessageActionRow, MessageButton, MessageSelectMenu, MessageSelectOptionData, User } from "discord.js";
 import Config from "../config";
+import LanguageHandler from "../handlers/language";
 import RankHandler, { Rank } from "../handlers/rank";
 import { Note } from "../types";
 import Utils from "../utils";
 
 namespace Components {
 
-    export async function chooseGuildMenuOpenQuestion(bot: Client, user: User) {
-        const chooseGuildMenu = new MessageSelectMenu().setCustomId('choose-guild-open-question').setPlaceholder(Config.chooseGuildEmbedMessagePlaceHolder);
+    export async function chooseGuildMenuOpenQuestion(bot: Client, user: User, lang: string) {
+        const chooseGuildMenu = new MessageSelectMenu().setCustomId('choose-guild-open-question').setPlaceholder(LanguageHandler.getMessageByLang("chooseGuildEmbedMessagePlaceHolder", lang));
 
         (await Utils.commonGuildCheck(bot, user)).forEach(g => {
             chooseGuildMenu.addOptions([{
@@ -44,6 +45,7 @@ namespace Components {
         { label: "Trusted Role", description: "Change the trusted role ID", value: "trusted-role-id" },
         { label: "Supervisor Role", description: "Change the supervisor role ID", value: "supervisor-role-id" },
         { label: "Manager Role", description: "Change the manager role ID", value: "manager-role-id" },
+        { label: "Language", description: "Change guild language", value: "guild-language" },
     ];
     export function setupMenu() {
         const setupMenu = new MessageSelectMenu().setCustomId('setup').setPlaceholder("Choose one of the options below");
@@ -68,28 +70,28 @@ namespace Components {
         return new MessageActionRow().addComponents(manageQuestionMenu);
     }
 
-    export function chooseToBeAnonymousButtons() {
-        const yesButton = new MessageButton().setCustomId("anon-yes").setLabel(Config.yesAnonButton).setStyle("SUCCESS");
-        const noButton = new MessageButton().setCustomId("anon-no").setLabel(Config.noAnonButton).setStyle("DANGER");
+    export function chooseToBeAnonymousButtons(lang: string) {
+        const yesButton = new MessageButton().setCustomId("anon-yes").setLabel(LanguageHandler.getMessageByLang('yesButton', lang)).setStyle("SUCCESS");
+        const noButton = new MessageButton().setCustomId("anon-no").setLabel(LanguageHandler.getMessageByLang('noButton', lang)).setStyle("DANGER");
         return new MessageActionRow().addComponents(yesButton, noButton);
     }
 
-    export function chooseSureMessage() {
-        const yesButton = new MessageButton().setCustomId("sure-yes").setLabel(Config.yesSureButton).setStyle("SUCCESS");
-        const noButton = new MessageButton().setCustomId("sure-no").setLabel(Config.noSureButton).setStyle("DANGER");
+    export function chooseSureMessage(lang: string) {
+        const yesButton = new MessageButton().setCustomId("sure-yes").setLabel(LanguageHandler.getMessageByLang('yesButton', lang)).setStyle("SUCCESS");
+        const noButton = new MessageButton().setCustomId("sure-no").setLabel(LanguageHandler.getMessageByLang('noButton', lang)).setStyle("DANGER");
         return new MessageActionRow().addComponents(yesButton, noButton);
     }
 
-    export function editButtons() {
-        const t = new MessageButton().setCustomId("edit-title").setLabel("Edit Title").setStyle("PRIMARY");
-        const d = new MessageButton().setCustomId("edit-description").setLabel("Edit Description").setStyle("PRIMARY");
-        const c = new MessageButton().setCustomId("cancel").setLabel("Cancel").setStyle("DANGER");
+    export function editButtons(lang: string) {
+        const t = new MessageButton().setCustomId("edit-title").setLabel(LanguageHandler.getMessageByLang('editTitleButton', lang)).setStyle("PRIMARY");
+        const d = new MessageButton().setCustomId("edit-description").setLabel(LanguageHandler.getMessageByLang('editDescriptionButton', lang)).setStyle("PRIMARY");
+        const c = new MessageButton().setCustomId("cancel").setLabel(LanguageHandler.getMessageByLang('cancelQuestionButton', lang)).setStyle("DANGER");
         return new MessageActionRow().addComponents(c, t, d);
     }
 
-    export function chooseSureManagementMessage() {
-        const yesButton = new MessageButton().setCustomId("mng-msg-yes").setLabel(Config.yesSureButton).setStyle("SUCCESS");
-        const noButton = new MessageButton().setCustomId("mng-msg-no").setLabel(Config.noSureButton).setStyle("DANGER");
+    export function chooseSureManagementMessage(lang: string) {
+        const yesButton = new MessageButton().setCustomId("mng-msg-yes").setLabel(LanguageHandler.getMessageByLang('yesButton', lang)).setStyle("SUCCESS");
+        const noButton = new MessageButton().setCustomId("mng-msg-no").setLabel(LanguageHandler.getMessageByLang('noButton', lang)).setStyle("DANGER");
         return new MessageActionRow().addComponents(yesButton, noButton);
     }
 

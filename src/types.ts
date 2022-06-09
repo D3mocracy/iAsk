@@ -3,6 +3,7 @@ import { ObjectId } from "mongodb"
 
 export type Question = {
     started?: boolean,
+    lang: string,
     _id?: ObjectId,
     authorId: string,
     deleted: boolean,
@@ -48,6 +49,7 @@ export type ManageMSG = {
 
 export type SetupConfig = {
     guildId: string,
+    language: string,
     done: boolean,
     questionCatagory: string,
     manageToolLogChannelID: string,

@@ -1,36 +1,42 @@
 import { Client, Guild, MessageEmbed, User } from "discord.js";
 import { client } from "..";
 import Config from "../config";
+import LanguageHandler from "../handlers/language";
 import Utils from "../utils";
 
 namespace Embeds {
     const author = { name: "iAsk Assistant", iconURL: "https://i.imgur.com/I7EoZkF.png" };
 
-    export const chooseGuildOpenQuestion = new MessageEmbed({
-        title: Config.chooseGuildEmbedMessageTitleOpenQuestion,
-        color: Config.chooseGuildEmbedMessageColorOpenQuesiton
-    });
+    export function chooseGuildOpenQuestion(lang: string) {
+        const msg = new MessageEmbed({
+            title: LanguageHandler.getMessageByLang("chooseGuildEmbedMessageTitleOpenQuestion", lang),
+            color: "DARK_VIVID_PINK"
+        });
+        return msg;
+    }
 
     export const chooseGuildManageMember = new MessageEmbed({
         title: Config.chooseGuildEmbedMessageTitleOpenQuestion,
-        color: Config.chooseGuildEmbedMessageColorOpenQuesiton
+        color: "DARK_VIVID_PINK"
     });
 
-    export const sureNo = new MessageEmbed({
-        title: 'Hah...you almost got me',
-        description: "That's fine, tell me what you wanna do?",
-        footer: { text: 'Please choose one of the options below' },
-        color: 'RED'
-    })
+    export function sureNo(lang: string) {
+        return new MessageEmbed({
+            title: LanguageHandler.getMessageByLang('sureNoTitle', lang),
+            description: LanguageHandler.getMessageByLang('sureNoDescription', lang),
+            footer: { text: LanguageHandler.getMessageByLang('sureNoFooter', lang) },
+            color: "RED"
+        })
+    }
 
-    export function questionMessage(title: string, description: string, tag: string, channelId?: string, guildId?: string) {
+    export function questionMessage(lang: string, title: string, description: string, tag: string, channelId?: string, guildId?: string) {
         const msg = new MessageEmbed({
-            author: { name: 'Jump To The Question', iconURL: 'https://i.imgur.com/I7EoZkF.png', url: `https://discord.com/channels/${guildId}/${channelId}` },
+            author: { name: LanguageHandler.getMessageByLang('jumpToQuestion', lang), iconURL: 'https://i.imgur.com/I7EoZkF.png', url: `https://discord.com/channels/${guildId}/${channelId}` },
             title, description,
-            footer: { text: `Channel ID: ${channelId || ""}` },
+            footer: { text: `${LanguageHandler.getMessageByLang("channelIDString", lang)} ${channelId || ""}` },
             color: 'AQUA'
         }).addFields(
-            { name: "Creator Tag: ", value: tag },
+            { name: `${LanguageHandler.getMessageByLang('creatorTag', lang)} `, value: tag },
         );
         return msg;
     };

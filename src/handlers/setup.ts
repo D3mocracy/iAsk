@@ -38,6 +38,7 @@ class SetupHanlder {
             { name: "Trusted Role ID:", value: String(this.config.trustedRoleID), inline: false },
             { name: "Supervisor Role ID:", value: String(this.config.supervisorRoleID), inline: false },
             { name: "Manager Role ID:", value: String(this.config.managerRoleID), inline: false },
+            { name: "Language:", value: String(this.config.language), inline: false },
         );
         await this.channel.send({ embeds: [embed], components: [Components.helperButtons(), Components.setupMenu()] });
     };
@@ -106,6 +107,11 @@ class SetupHanlder {
                     this.config.managerRoleID = value
                 } else { await this.channel.send("I don't think this is a role id...") }
             },
+            "guild-language": async () => {
+                if (value === "HE" || value === "EN") {
+                    this.config.language = value.toLowerCase();
+                } else { await this.channel.send("Language must be EN or HE") }
+            },
         }
         await options[key]();
         this.config.done = await this.checkDone();
@@ -114,6 +120,7 @@ class SetupHanlder {
     async checkDone(): Promise<boolean> {
         return !!(this.config.guildId &&
             this.config.questionCatagory &&
+            this.config.language &&
             this.config.manageToolLogChannelID &&
             this.config.questionLogChannelID &&
             this.config.maxQuestions &&

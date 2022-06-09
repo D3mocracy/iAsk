@@ -50,7 +50,7 @@ namespace Utils {
             minutes = Math.floor((millisecond / (1000 * 60)) % 60),
             hours = Math.floor((millisecond / (1000 * 60 * 60)) % 24)
         return `${hours}h ${minutes}m ${seconds}s`;
-    }
+    };
 
 }
 

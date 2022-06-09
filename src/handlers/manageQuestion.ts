@@ -1,6 +1,6 @@
 import { Client, DMChannel, Guild, GuildMember, MessageActionRow, TextChannel, User } from "discord.js";
 import DataBase from "../db";
-import { ManagementDetails, Question } from "../types";
+import { ManagementDetails, Question, SetupConfig } from "../types";
 import { MissingGuildIdError } from "../error"
 import Config from "../config";
 import Embeds from "../embedsAndComps/Embeds";
@@ -14,6 +14,7 @@ class ManageQuestionHandler {
     private question: Question = {} as any;
     private questionChannel: TextChannel = {} as any;
     private dmChannel: DMChannel;
+    private lang: string = "en";
     private constructor(private bot: Client, private questionChannelId: string, dmChannel: any, private sender: User) {
         this.dmChannel = dmChannel;
     }
@@ -37,6 +38,8 @@ class ManageQuestionHandler {
         this.question = (await DataBase.questionsCollection.findOne({ channelId: this.questionChannelId, deleted: false }) as any) || this.question;
         if (!this.question.guildId) throw new MissingGuildIdError();
         this.questionChannel = await (await this.bot.guilds.fetch(this.question.guildId)).channels.fetch(this.questionChannelId) as any;
+        const guildObj: SetupConfig = await DataBase.guildsCollection.findOne({ guildId: this.question.guildId }) as any;
+        this.lang = guildObj.language || "en";
     }
 
     async checkQuestionBelongToMember() {

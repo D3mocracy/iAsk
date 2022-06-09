@@ -15,6 +15,10 @@ import ManagementMessageHanlder from "./handlers/managementMessage";
 import SetupHanlder from "./handlers/setup";
 import RankHandler, { Rank } from "./handlers/rank";
 import { Question, SetupConfig } from "./types";
+import { init as dbConfigInit } from "./jobs/dbConfig";
+import { languageInit } from "./jobs/dbLanguage";
+import LanguageDBHandler from "./config/languageDBHandler";
+import LanguageHandler from "./handlers/language";
 export const client: Client = new Client({ partials: ["CHANNEL"], intents: new Intents(32767) });
 
 
@@ -100,10 +104,10 @@ client.on("messageCreate", async message => {
                 return;
             }
         }
+        const lang = LanguageHandler.messageLanaguageChecker(Config.iHaveAQuestionMessage, message.content);
+        const openQuesitonHandler = await OpenQuestionHandler.createHandler(client, message.author, message.channel, lang);
 
-        const openQuesitonHandler = await OpenQuestionHandler.createHandler(client, message.author, message.channel);
-
-        if (message.content.toLowerCase() === Config.iHaveAQuestionMessage && !openQuesitonHandler.questionObject.started) {
+        if (!openQuesitonHandler.questionObject.started && lang) {
             await openQuesitonHandler.iHaveAQuestion();
             await openQuesitonHandler.save();
             return;
@@ -170,17 +174,8 @@ client.on('interactionCreate', async interaction => {
         if (interaction.customId === "choose-guild-open-question") {
             const openQuestionHandler = await OpenQuestionHandler.createHandler(client, interaction.user, interaction.channel);
 
-            await openQuestionHandler.chooseGuild(interaction.values[0]);
-            if (await openQuestionHandler.isReachedLimit()) {
-                interaction.channel?.send(Config.reachLimitQuestionsError);
-                await openQuestionHandler.deleteQuestion();
-                await openQuestionHandler.save();
-                await interaction.deferUpdate();
-                return;
-            }
+            await openQuestionHandler.chooseGuild(interaction);
             await openQuestionHandler.save();
-            await interaction.channel?.send(Config.chooseTitleMessage);
-            await interaction.update({ content: `Your choice is ${(interaction as SelectMenuInteraction).values[0]}`, embeds: [], components: [] });
 
         } else if (interaction.customId === "choose-guild-manage-member") {
             const memberId = await ManageMemberHanlder.getMemberIdFromDBByManagerId(interaction.user);
@@ -309,12 +304,13 @@ client.on('interactionCreate', async interaction => {
         } else if (!openQuestionHandler.questionObject.channelId) {
             if (interaction.customId === "sure-yes") {
                 await openQuestionHandler.createChannelOnGuild();
-                await interaction.channel?.send(Config.succsesMsg);
             } else if (interaction.customId === "sure-no") {
                 await openQuestionHandler.sureNo();
             } else if (interaction.customId === 'cancel') {
                 await openQuestionHandler.deleteQuestion();
+                await openQuestionHandler.save();
                 await interaction.update({ content: "As you wish..I canceled you question.", embeds: [], components: [] });
+                return;
             }
         }
         await openQuestionHandler.save();
@@ -364,4 +360,8 @@ client.on('guildMemberAdd', async m => {
     } catch (error) { }
 })
 
-DataBase.init().then(() => client.login(Config.TOKEN));
+DataBase.init().then(() => {
+    dbConfigInit();
+    languageInit();
+    client.login(Config.TOKEN);
+});

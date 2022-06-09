@@ -35,7 +35,7 @@ class ManagementMessageHanlder {
         await channel.send({
             content: "Are you sure?",
             embeds: [Embeds.managementMessage(guild, this.managementMessage.content as string)],
-            components: [Components.chooseSureManagementMessage()]
+            components: [Components.chooseSureManagementMessage("LANG!!!!!")]
         });
     };
 
