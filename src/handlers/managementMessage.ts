@@ -5,6 +5,7 @@ import Components from "../embedsAndComps/components";
 import Embeds from "../embedsAndComps/Embeds";
 import { ManageMSG } from "../types";
 import Utils from "../utils";
+import LanguageHandler from "./language";
 
 class ManagementMessageHanlder {
     private managementMessage: ManageMSG = {} as ManageMSG;
@@ -24,6 +25,7 @@ class ManagementMessageHanlder {
             sent: false,
             deleted: false,
         }) as any || this.managementMessage;
+        this.managementMessage.lang = (await DataBase.memberManagementCollection.findOne({ managerId: this.manager.id }))?.lang || "en";
     }
 
     async save() {
@@ -34,8 +36,8 @@ class ManagementMessageHanlder {
         const guild = Utils.convertIDToGuild(this.bot, this.managementMessage.guildId) as Guild;
         await channel.send({
             content: "Are you sure?",
-            embeds: [Embeds.managementMessage(guild, this.managementMessage.content as string)],
-            components: [Components.chooseSureManagementMessage("LANG!!!!!")]
+            embeds: [Embeds.managementMessage(this.managementMessage.lang, guild, this.managementMessage.content as string)],
+            components: [Components.chooseSureManagementMessage(this.managementMessage.lang)]
         });
     };
 
@@ -47,16 +49,15 @@ class ManagementMessageHanlder {
     async manageMessageDealer(interaction: ButtonInteraction) {
         const member = Utils.convertIDtoUser(this.bot, this.managementMessage.memberId);
         const guild = Utils.convertIDToGuild(this.bot, this.managementMessage.guildId);
-
+        const score = LanguageHandler.getMessageByLang('managementMessageScore', this.managementMessage.lang);
         if (!member || !guild) return;
         if (interaction.customId === "mng-msg-yes") {
-            await (await member?.createDM()).send({ embeds: [Embeds.managementMessage(guild, this.managementMessage.content as string)] });
+            await (await member?.createDM()).send({ embeds: [Embeds.managementMessage(this.managementMessage.lang, guild, this.managementMessage.content as string)] });
             this.managementMessage.sent = true;
-            await interaction.update({ content: "I sent your magic message :D", embeds: [], components: [] });
+            await interaction.update({ content: score.suc, embeds: [], components: [] });
         } else {
-            await interaction.update({ content: "Nothing happened :(", embeds: [], components: [] });
+            await interaction.update({ content: score.fail, embeds: [], components: [] });
             this.managementMessage.deleted = true;
-            // await DataBase.managementMessageCollection.deleteOne({ managerId: this.managementMessage.managerId, sent: false });
         }
 
     }

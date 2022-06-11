@@ -1,5 +1,5 @@
 require("dotenv").config();
-import { Client, DMChannel, Intents, MessageActionRow, SelectMenuInteraction, TextChannel, User } from "discord.js";
+import { Client, CollectorFilter, DMChannel, Intents, Message, MessageActionRow, MessageReaction, ReactionCollector, ReactionCollectorOptions, ReactionEmoji, ReactionManager, SelectMenuInteraction, TextChannel, User } from "discord.js";
 import Config from "./config";
 import DataBase from "./db";
 import Components from "./embedsAndComps/components";
@@ -19,6 +19,7 @@ import { init as dbConfigInit } from "./jobs/dbConfig";
 import { languageInit } from "./jobs/dbLanguage";
 import LanguageDBHandler from "./config/languageDBHandler";
 import LanguageHandler from "./handlers/language";
+import ReactionHandler from "./handlers/reactionHandler";
 export const client: Client = new Client({ partials: ["CHANNEL"], intents: new Intents(32767) });
 
 
@@ -73,7 +74,8 @@ client.on("messageCreate", async message => {
             const guild = await client.guilds.fetch(manageQuestionHandler.questionObject.guildId as string)
             const channel = await guild.channels.fetch(manageQuestionHandler.questionObject.channelId as string);
             if (!channel) return;
-            await message.channel.send({ embeds: [Embeds.questionManageMember(channel.id)], components: [await manageQuestionHandler.manageQuestionComp() as MessageActionRow] })
+            await manageQuestionHandler.sendMemberQuestionManageMessage();
+            // await message.channel.send({ embeds: [Embeds.questionManageMember(channel.id)], components: [await manageQuestionHandler.manageQuestionComp() as MessageActionRow] })
             return;
         }
 
@@ -83,7 +85,8 @@ client.on("messageCreate", async message => {
                     const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, args[2], message.channel as DMChannel, message.author);
                     if (!manageQuestionHandler) return;
                     if (await manageQuestionHandler.isStaff()) {
-                        await message.reply({ embeds: [Embeds.questionManageMessage(args[2])], components: [await manageQuestionHandler.manageQuestionComp() as MessageActionRow] });
+                        await manageQuestionHandler.sendManageQuestionMessage(message);
+                        // await message.reply({ embeds: [Embeds.questionManageMessage(args[2])], components: [await manageQuestionHandler.manageQuestionComp() as MessageActionRow] });
                     } else {
                         await message.reply("Sorry, you are not a staff member on that guild.");
                         return;
@@ -129,7 +132,8 @@ client.on("messageCreate", async message => {
     } else if (message.channel.type === "GUILD_TEXT" && message.author !== client.user) {
         if (message.content === "!notif") {
             if (!message.member?.permissions.has('ADMINISTRATOR')) return;
-            await (await message.channel.send({ embeds: [Embeds.notificationMessage] })).react('🔔');
+            const lang = (await DataBase.guildsCollection.findOne({ guildId: message.guildId }))?.language || "en";
+            await (await message.channel.send({ embeds: [Embeds.notificationMessage(lang)] })).react('🔔');
             await message.delete();
         }
         const args = message.content.split(" ");
@@ -197,7 +201,8 @@ client.on('interactionCreate', async interaction => {
 
 
         } else if (interaction.customId === "channel-mng") {
-            const managedChannelId: string = (interaction as SelectMenuInteraction).message.embeds[0].footer?.text.replaceAll(`${Config.channelIDFooter} `, "") as any;
+            const footer: string = (interaction as SelectMenuInteraction).message.embeds[0].footer?.text as string;
+            const managedChannelId: string = `${footer.match(/\d+/g)}`;
             const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, managedChannelId, interaction.channel, interaction.user);
             if (!manageQuestionHandler) return;
             const options: any = {
@@ -214,16 +219,13 @@ client.on('interactionCreate', async interaction => {
             interaction.update({ components: [await manageQuestionHandler.manageQuestionComp() as MessageActionRow] });
 
         } else if (interaction.customId === "change-dtl") {
-            const managedChannelId: string = (interaction as SelectMenuInteraction).message.embeds[0].footer?.text.replaceAll(`${Config.channelIDFooter} `, "") as any;
+            const footer: string = (interaction as SelectMenuInteraction).message.embeds[0].footer?.text as string;
+            const managedChannelId: string = `${footer.match(/\d+/g)}`;
             const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, managedChannelId, interaction.channel, interaction.user);
             if (!manageQuestionHandler) return;
-            if (interaction.values[0] === "change-anonymous") {
-                await manageQuestionHandler.switchAnonymous();
-            } else {
-                await manageQuestionHandler.changeDetail(interaction.values[0]);
-            }
+            await manageQuestionHandler.changeDetail(interaction);
             await manageQuestionHandler.save();
-            interaction.update({ components: [Components.changeDetails()] });
+
 
         } else if (interaction.customId === "mbr-mng") {
             const memberId = await ManageMemberHanlder.getMemberIdFromDBByManagerId(interaction.user);
@@ -250,8 +252,10 @@ client.on('interactionCreate', async interaction => {
 
             const options: any = {
                 "note-add": async () => {
+                    const footer: string = (interaction as SelectMenuInteraction).message.embeds[0].footer?.text as string;
+                    const guildId: string = `${footer.match(/\d+/g)}`;
                     const newNoteHandler = await NewNoteHandler.createHandler(interaction.user, interaction);
-                    newNoteHandler.addNote()
+                    await newNoteHandler.addNote()
                     await newNoteHandler.save();
                 },
                 "note-remove": async () => { noteManageHanlder.updateToRemoveNotesMessage() },
@@ -319,18 +323,10 @@ client.on('interactionCreate', async interaction => {
 });
 
 client.on('messageReactionAdd', async (react, user) => {
-    if (user.bot) return;
-    const message = react.message.embeds[0];
-    if (message.title !== Embeds.notificationMessage.title && message.description !== Embeds.notificationMessage.description) return;
-    if (!react.message.guildId) return;
-    if (react.emoji.name === '🔔') {
-        const member = Utils.convertIDtoMemberFromGuild(client, user.id, react.message.guildId);
-        const rankHandler = await RankHandler.createHandler(member);
-        rankHandler.hasRank(Rank.NOTIFICATION) ? await rankHandler.removeRank(Rank.NOTIFICATION) : await rankHandler.addRank(Rank.NOTIFICATION);
-        await react.users.remove(user as User);
-    } else {
-        await react.remove();
-    }
+    if (user.bot || react.message.channel.type !== "GUILD_TEXT") return;
+    const reactionHandler = await ReactionHandler.createHandler(client, react as MessageReaction, user as User);
+    await reactionHandler.notificationRank();
+    await reactionHandler.removeReactionsFromAnyBotMessage();
 
 })
 

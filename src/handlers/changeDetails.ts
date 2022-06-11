@@ -1,13 +1,15 @@
 import { Client, Guild, TextChannel, User } from "discord.js";
 import DataBase from "../db";
 import Embeds from "../embedsAndComps/Embeds";
-import { ManagementDetails, Question } from "../types";
+import { ManagementDetails, Question, SetupConfig } from "../types";
+import LanguageHandler from "./language";
 
 class ChangeDetailsHandler {
     private question: Question = {} as any;
     private detailManager: ManagementDetails = {} as any;
     private guild: Guild | undefined;
     private channel: TextChannel | undefined;
+    private lang: string = "en";
     constructor(private bot: Client, private managerId: string) { }
 
     static async createHandler(bot: Client, managerId: string) {
@@ -25,6 +27,8 @@ class ChangeDetailsHandler {
         this.question = await DataBase.questionsCollection.findOne({ channelId: this.detailManager.channelId, deleted: false }) as any;
         this.guild = this.bot.guilds.cache.get(this.question.guildId as string) as Guild;
         this.channel = this.guild.channels.cache.get(this.question.channelId as string) as TextChannel;
+        const guildObj: SetupConfig = await DataBase.guildsCollection.findOne({ guildId: this.question.guildId }) as any;
+        this.lang = guildObj.language || "en";
     }
 
     async save() {
@@ -41,8 +45,8 @@ class ChangeDetailsHandler {
         const member = this.guild.members.cache.get(this.question.authorId);
         if (!member) return;
         await this.channel.send({
-            embeds: [Embeds.questionMessage("LANG", this.question.title as string, this.question.description as string,
-                this.question.anonymous ? "Anonymous" : member?.user.tag, this.question.channelId, this.question.guildId)]
+            embeds: [Embeds.questionMessage(this.lang, this.question.title as string, this.question.description as string,
+                this.question.anonymous ? LanguageHandler.getMessageByLang('Anonymous', this.lang) : member?.user.tag, this.question.channelId, this.question.guildId)]
         })
     }
 

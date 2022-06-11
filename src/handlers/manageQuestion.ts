@@ -1,4 +1,4 @@
-import { Client, DMChannel, Guild, GuildMember, MessageActionRow, TextChannel, User } from "discord.js";
+import { Client, DMChannel, Guild, GuildMember, Message, MessageActionRow, SelectMenuInteraction, TextChannel, User } from "discord.js";
 import DataBase from "../db";
 import { ManagementDetails, Question, SetupConfig } from "../types";
 import { MissingGuildIdError } from "../error"
@@ -9,6 +9,7 @@ import LogHandler from "./log";
 import SetupHanlder from "./setup";
 import Utils from "../utils";
 import RankHandler, { Rank } from "./rank";
+import LanguageHandler from "./language";
 
 class ManageQuestionHandler {
     private question: Question = {} as any;
@@ -42,6 +43,14 @@ class ManageQuestionHandler {
         this.lang = guildObj.language || "en";
     }
 
+    async sendMemberQuestionManageMessage() {
+        await this.dmChannel.send({ embeds: [Embeds.questionManageMember(this.lang, this.question.channelId as string)], components: [await this.manageQuestionComp() as MessageActionRow] })
+    }
+
+    private getMessageFromLangHandler(key: string) {
+        return LanguageHandler.getMessageByLang(key, this.lang);
+    }
+
     async checkQuestionBelongToMember() {
         return this.sender.id === this.question.authorId;
     }
@@ -52,11 +61,14 @@ class ManageQuestionHandler {
 
     }
 
+    async sendManageQuestionMessage(message: Message) {
+        await message.reply({ embeds: [Embeds.questionManageMessage(this.lang, this.questionChannelId)], components: [await this.manageQuestionComp() as MessageActionRow] });
+    }
 
     async manageQuestionComp() {
         if (!this.bot || !this.sender || !this.question.guildId) return;
         const member = Utils.convertIDtoMemberFromGuild(this.bot, this.sender.id, this.question.guildId) as GuildMember;
-        return await Components.manageQuestionMenu(member);
+        return await Components.manageQuestionMenu(this.lang, member);
     }
 
     get questionObject() {
@@ -78,16 +90,16 @@ class ManageQuestionHandler {
         const hours = Math.floor((new Date().valueOf() - channel.createdAt.valueOf()) / 3600000);
 
         if (rankHandler.hasRank(Rank.SUPERVISOR) || rankHandler.hasRank(Rank.MANAGER)) return true;
-
+        const messagePrefix = this.getMessageFromLangHandler('questionDeleteMemberOrTrusted');
         if (rankHandler.hasRank(Rank.TRUSTED)) {
             if (hours < 12) {
-                await this.dmChannel.send(`As a trusted member you can delete a question after 12 hours, its been only ${hours}`);
+                await this.dmChannel.send(`${messagePrefix.trusted} ${hours}`);
             }
             return hours > 12;
         }
         if (rankHandler.hasRank(Rank.MEMBER)) {
             if (hours < 24) {
-                await this.dmChannel.send(`As a member you can delete a question after 24 hours, its been have only ${hours}`);
+                await this.dmChannel.send(`${messagePrefix.member} ${hours}`);
             }
             return hours > 24;
         }
@@ -104,7 +116,7 @@ class ManageQuestionHandler {
             await LogHandler.logQuestionChannel(this.questionChannel, questionLogChannel)
             await this.questionChannel.delete();
             this.question.deleted = true;
-            this.dmChannel.send("Channel Deleted")
+            await this.dmChannel.send(this.getMessageFromLangHandler('channelDeletedMessage'));
         } else {
             return;
         }
@@ -117,7 +129,7 @@ class ManageQuestionHandler {
             let guild = await this.bot.guilds.fetch(this.questionChannel.guildId);
             await this.questionChannel.permissionOverwrites.create(guild.roles.everyone, { SEND_MESSAGES: false });
         } else {
-            await this.dmChannel.send("Question is already locked")
+            await this.dmChannel.send(this.getMessageFromLangHandler('alreadyLocked'));
             return;
         }
     }
@@ -129,14 +141,14 @@ class ManageQuestionHandler {
             let guild = await this.bot.guilds.fetch(this.questionChannel.guildId);
             await this.questionChannel.permissionOverwrites.create(guild.roles.everyone, { SEND_MESSAGES: true });
         } else {
-            await this.dmChannel.send("Question is already unlocked")
+            await this.dmChannel.send(this.getMessageFromLangHandler('alreadyUnlocked'));
             return;
         }
     };
 
     async revealUserTag() {
         const memberTag = (await (await this.bot.guilds.fetch(this.question.guildId as string)).members.fetch(this.question.authorId)).user.tag;
-        await this.dmChannel.send(`The user is ${memberTag}`)
+        await this.dmChannel.send(`${memberTag}`)
     }
 
     async logQuestion() {
@@ -144,21 +156,19 @@ class ManageQuestionHandler {
     }
 
     async chooseChangeDetail() {
-        await this.dmChannel.send({ embeds: [Embeds.changeDetails(this.questionChannelId)], components: [Components.changeDetails()] })
+        await this.dmChannel.send({ embeds: [Embeds.changeDetails(this.lang, this.questionChannelId)], components: [Components.changeDetails(this.lang)] })
     }
 
-    async changeDetail(detail: string) {
+    async changeDetail(interaction: SelectMenuInteraction) {
+        const configMsg = this.getMessageFromLangHandler('changeDetailsMessages');
         const messages: any = {
-            "change-title": "Please type a new title",
-            "change-description": "Please type a new description",
+            "change-title": configMsg.title,
+            "change-description": configMsg.title,
         }
-        await DataBase.detailsManagementCollection.updateOne({ managerId: this.sender.id }, { $set: { status: detail, channelId: this.questionChannelId } }, { upsert: true });
-        this.dmChannel.send(messages[detail]);
+        await DataBase.detailsManagementCollection.updateOne({ managerId: this.sender.id }, { $set: { status: interaction.values[0], channelId: this.questionChannelId } }, { upsert: true });
+        await this.dmChannel.send(messages[interaction.values[0]]);
+        await interaction.update({ components: [Components.changeDetails(this.lang)] });
 
-    }
-
-    async switchAnonymous() {
-        this.question.anonymous = !this.question.anonymous;
     }
 
     async isStaff(): Promise<boolean> {

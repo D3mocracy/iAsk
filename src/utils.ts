@@ -44,7 +44,7 @@ namespace Utils {
 
     export function getRemainTime(member: GuildMember): string | undefined {
         const now = new Date();
-        if (!member.communicationDisabledUntil) return undefined;
+        if (!member.communicationDisabledUntil || !member.isCommunicationDisabled()) return undefined;
         const millisecond = member.communicationDisabledUntil.getTime() - now.getTime();
         const seconds = Math.floor((millisecond / 1000) % 60),
             minutes = Math.floor((millisecond / (1000 * 60)) % 60),

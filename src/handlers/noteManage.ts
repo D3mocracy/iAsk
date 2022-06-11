@@ -5,6 +5,7 @@ import DataBase from "../db";
 import Components from "../embedsAndComps/components";
 import Embeds from "../embedsAndComps/Embeds";
 import { Note } from "../types";
+import LanguageHandler from "./language";
 
 class NoteManageHanlder {
     private notes: Note[] = [];
@@ -20,17 +21,26 @@ class NoteManageHanlder {
     }
 
     async load() {
-        this.memberId = (this.interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === Config.memberIDFooter)?.value as string;
+        const memberManagement = await DataBase.memberManagementCollection.findOne({ managerId: this.interaction.user.id });
+        if (!memberManagement) return;
+        this.memberId = memberManagement.memberId;
         this.managerId = this.interaction.user.id;
-        this.guildId = (this.interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === "Guild ID:")?.value as string;
+        this.guildId = memberManagement.guildId;
         this.notes = await DataBase.noteCollection.find({ managerId: this.managerId, memberId: this.memberId, guildId: this.guildId, deleted: false }).toArray() as any;
+    }
 
+    async getLang() {
+        return (await DataBase.guildsCollection.findOne({ guildId: this.guildId }))?.language || "en";
+    }
+
+    async getMessageFromLang(key: string) {
+        return LanguageHandler.getMessageByLang(key, await this.getLang());
     }
 
     async sendShowAllNotesMessage() {
         if (!this.notes || !this.interaction.channel) return;
         const embed = new MessageEmbed({
-            title: "Member Notes",
+            title: await this.getMessageFromLang('memberNotes'),
             color: 'GREY',
             description: this.notes.map((n, i) =>
                 `**${i + 1}) ** ${n.content}`
@@ -43,7 +53,7 @@ class NoteManageHanlder {
     async softDeleteAllNotes() {
         if (!this.interaction.channel) return;
         const embed = new MessageEmbed({
-            title: "Notes Reseted",
+            title: await this.getMessageFromLang('notesReseted'),
             color: "DARK_RED",
         });
         (await DataBase.noteCollection.updateMany({ memberId: this.memberId, guildId: this.guildId }, { $set: { deleted: true } }));
@@ -53,15 +63,15 @@ class NoteManageHanlder {
 
     async updateToRemoveNotesMessage() {
         if (this.notes.length === 0) {
-            await this.interaction.reply("Member doesn't have any notes..pff shame on him!");
+            await this.interaction.reply(await this.getMessageFromLang('errorNotes'));
             return;
         }
-        await this.interaction.update({ embeds: [Embeds.chooseNoteToRemove(this.memberId, this.guildId)], components: [Components.removeNoteMenu(this.notes as any)] });
+        await this.interaction.update({ embeds: [Embeds.chooseNoteToRemove(await this.getLang(), this.memberId, this.guildId)], components: [Components.removeNoteMenu(await this.getLang(), this.notes as any)] });
     }
 
     private async updateEmbedAndCompToNoteSystem() {
         await this.interaction.update({
-            embeds: [Embeds.noteMemberMessage(this.memberId, this.guildId)], components: [Components.memberNoteMenu()]
+            embeds: [Embeds.noteMemberMessage(await this.getLang(), this.memberId, this.guildId)], components: [Components.memberNoteMenu(await this.getLang())]
         });
     };
 
@@ -70,7 +80,7 @@ class NoteManageHanlder {
         await DataBase.noteCollection.updateOne({ _id }, { $set: { deleted: true } });
         await this.updateEmbedAndCompToNoteSystem();
         if (!this.interaction.channel) return;
-        await this.interaction.channel.send("We don't need this note!")
+        await this.interaction.channel.send(await this.getMessageFromLang('removeNotesReply'));
     }
 }
 

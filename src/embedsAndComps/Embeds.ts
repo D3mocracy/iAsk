@@ -16,15 +16,15 @@ namespace Embeds {
     }
 
     export const chooseGuildManageMember = new MessageEmbed({
-        title: Config.chooseGuildEmbedMessageTitleOpenQuestion,
+        title: "Choose a guild",
         color: "DARK_VIVID_PINK"
     });
 
     export function sureNo(lang: string) {
         return new MessageEmbed({
-            title: LanguageHandler.getMessageByLang('sureNoTitle', lang),
-            description: LanguageHandler.getMessageByLang('sureNoDescription', lang),
-            footer: { text: LanguageHandler.getMessageByLang('sureNoFooter', lang) },
+            title: LanguageHandler.getMessageByLang('sureNo', lang).title,
+            description: LanguageHandler.getMessageByLang('sureNo', lang).description,
+            footer: { text: LanguageHandler.getMessageByLang('sureNo', lang).footer },
             color: "RED"
         })
     }
@@ -41,96 +41,104 @@ namespace Embeds {
         return msg;
     };
 
-    export function questionManageMember(channelId: string) {
+    export function questionManageMember(lang: string, channelId: string) {
+        const obj = LanguageHandler.getMessageByLang('memberManageQuestionEmbed', lang)
         const msg = new MessageEmbed({
             author,
-            title: 'Manage Question',
-            description: 'Please choose one of the options below.',
-            footer: { text: `${Config.channelIDFooter} ${channelId}` },
+            title: obj.title,
+            description: obj.description,
+            footer: { text: `${obj.channelId} ${channelId}` },
             color: 'DARK_BLUE'
         })
         return msg;
     }
 
-    export function questionManageMessage(channelId: string) {
+    export function questionManageMessage(lang: string, channelId: string) {
         const msg = new MessageEmbed({
             author,
-            title: "Management CP - Channel Edition",
-            description: "Please choose one of the options down below.",
+            title: LanguageHandler.getMessageByLang('questionManageMessage', lang).title,
+            description: LanguageHandler.getMessageByLang('questionManageMessage', lang).description,
+            // title: "Management CP - Channel Edition",
+            // description: "Please choose one of the options down below.",
             thumbnail: { url: 'https://i.imgur.com/oK6Fu1z.png' },
-            footer: { text: `${Config.channelIDFooter} ${channelId}` },
+            footer: { text: `${LanguageHandler.getMessageByLang('channelIDString', lang)} ${channelId}` },
             color: 'LIGHT_GREY'
         });
         return msg;
     }
 
-    export function memberManageMessage(user: User, guildId: string) {
+    export function memberManageMessage(lang: string, user: User, guildId: string) {
+        const memberManageEmbed = LanguageHandler.getMessageByLang('memberManageEmbed', lang);
         const member = Utils.convertIDtoMemberFromGuild(client, user.id, guildId);
         const msg = new MessageEmbed({
             author,
-            title: "Management CP - Member Edition",
-            description: "**Member information:**",
+            title: memberManageEmbed.title,
+            description: memberManageEmbed.description,
             thumbnail: { url: 'https://i.imgur.com/7Lt7QEE.png' },
             color: 'DARK_GREEN'
         }).addFields([
-            { name: "Guild ID:", value: guildId },
-            { name: 'Member Tag:', value: user.tag },
-            { name: Config.memberIDFooter, value: user.id },
-            { name: 'Block Status:', value: member.isCommunicationDisabled() ? "Blocked" : "Not Blocked" },
+            { name: memberManageEmbed.guildId, value: guildId },
+            { name: memberManageEmbed.memberTag, value: user.tag },
+            { name: memberManageEmbed.memberId, value: user.id },
+            { name: memberManageEmbed.blockStatus, value: member.isCommunicationDisabled() ? memberManageEmbed.blocked : memberManageEmbed.notBlocked },
         ])
         return msg;
     }
 
-    export function blockMemberMessage(memberId: string, guildId: string) {
+    export function blockMemberMessage(lang: string, memberId: string, guildId: string) {
+        const blockMemberMessageEmbed = LanguageHandler.getMessageByLang('blockMemberMessageEmbed', lang);
         const member = Utils.convertIDtoMemberFromGuild(client, memberId, guildId);
         const msg = new MessageEmbed({
             author,
-            title: "Block Member",
-            description: "Block will disable the member from using the bot and from commenting on the server.",
+            title: blockMemberMessageEmbed.title,
+            description: blockMemberMessageEmbed.description,
             thumbnail: { url: 'https://i.imgur.com/6hoKm9h.png' },
             color: 'RED'
         }).addFields([
-            { name: "Guild ID:", value: guildId },
-            { name: 'Member Tag:', value: member.user.tag },
-            { name: Config.memberIDFooter, value: memberId },
-            { name: 'Block Ends In:', value: Utils.getRemainTime(member) || 'None' }
+            { name: blockMemberMessageEmbed.guildId, value: guildId },
+            { name: blockMemberMessageEmbed.memberTag, value: member.user.tag },
+            { name: blockMemberMessageEmbed.memberId, value: memberId },
+            { name: blockMemberMessageEmbed.blockEndsIn, value: Utils.getRemainTime(member) || blockMemberMessageEmbed.none }
         ]);
         return msg;
     }
 
-    export function noteMemberMessage(memberId: string, guildId: string) {
+    export function noteMemberMessage(lang: string, memberId: string, guildId: string) {
+        const noteConfig = LanguageHandler.getMessageByLang('noteMemberMessageEmbed', lang);
         const member = Utils.convertIDtoMemberFromGuild(client, memberId, guildId);
         const msg = new MessageEmbed({
             author,
-            title: "Note System",
-            description: "Note system for manager, here you can write notes that won't be available to the user.",
+            title: noteConfig.title,
+            description: noteConfig.description,
             thumbnail: { url: 'https://i.imgur.com/5WNtvHT.png' },
+            footer: { text: `${noteConfig.guildId} ${guildId}` },
             color: 'GREY'
         }).addFields([
-            { name: "Guild ID:", value: guildId },
-            { name: 'Member Tag:', value: member.user.tag },
-            { name: Config.memberIDFooter, value: memberId }
+            { name: noteConfig.memberTag, value: member.user.tag },
+            { name: noteConfig.memberId, value: memberId }
         ])
         return msg;
     }
 
-    export function chooseNoteToRemove(memberId: string, guildId: string) {
+    export function chooseNoteToRemove(lang: string, memberId: string, guildId: string) {
+        const removeNote = LanguageHandler.getMessageByLang('removeNoteEmbed', lang);
         const msg = new MessageEmbed({
-            title: "Choose A Note To *Remove*",
+            title: removeNote.title,
             color: "RED",
         }).addFields([
-            { name: "Guild ID:", value: guildId },
-            { name: Config.memberIDFooter, value: memberId }
+            { name: removeNote.guildId, value: guildId },
+            { name: removeNote.memberId, value: memberId }
         ])
         return msg;
     }
 
-    export function managementMessage(guild: Guild, description: string) {
+    export function managementMessage(lang: string, guild: Guild, description: string) {
+        const obj = LanguageHandler.getMessageByLang('managementMessageEmbed', lang);
         const msg = new MessageEmbed({
-            title: "Management Message",
+            title: obj.title,
             description,
-            author: { name: "iAsk Management", iconURL: "https://i.imgur.com/I7EoZkF.png" },
-            footer: { text: `This message sent from ${guild.name} guild by an administrator.` },
+            author: { name: obj.author, iconURL: "https://i.imgur.com/I7EoZkF.png" },
+            footer: { text: `${obj.footer} ${guild.name}.` },
             color: 'DARK_ORANGE'
         })
         return msg;
@@ -188,13 +196,16 @@ namespace Embeds {
 
         return msg;
     }
-
-    export const notificationMessage = new MessageEmbed({
-        title: 'Want to get notified whenever a new question created?',
-        description: 'Click on the bell!',
-        footer: { text: 'You can click again to remove the role' },
-        color: 'DARK_GOLD'
-    })
+    export function notificationMessage(lang: string) {
+        const notifEmbed = LanguageHandler.getMessageByLang('notificationEmbed', lang);
+        const notificationMessage = new MessageEmbed({
+            title: notifEmbed.title,
+            description: notifEmbed.description,
+            footer: { text: notifEmbed.footer },
+            color: 'DARK_GOLD'
+        })
+        return notificationMessage;
+    }
 
     export const setupMessage = new MessageEmbed({
         title: "Setup Your Guild - iAsk Bot",
@@ -229,12 +240,13 @@ namespace Embeds {
         color: "GREEN"
     });
 
-    export function changeDetails(channelId: string) {
+    export function changeDetails(lang: string, channelId: string) {
+        const changeDetailsEmbed = LanguageHandler.getMessageByLang('changeDetailsEmbed', lang);
         return new MessageEmbed({
-            title: "Choose Detail",
-            description: "Please choose one of the options below",
+            title: changeDetailsEmbed.title,
+            description: changeDetailsEmbed.description,
             color: "BLURPLE",
-            footer: { text: `${Config.channelIDFooter} ${channelId}` }
+            footer: { text: `${LanguageHandler.getMessageByLang('channelIDString', lang)} ${channelId}` }
         });
     }
 

@@ -1,15 +1,15 @@
-import { Message, MessageEmbed, SelectMenuInteraction, User } from "discord.js";
+import { Message, SelectMenuInteraction, User } from "discord.js";
 import Config from "../config";
 import DataBase from "../db";
 import Components from "../embedsAndComps/components";
 import Embeds from "../embedsAndComps/Embeds";
 import { Note } from "../types";
-import ManageMemberHanlder from "./manageMember";
+import LanguageHandler from "./language";
 
 class NewNoteHandler {
     private note: Note = {} as Note;
-    private guildId: string = "";
     private memberId: string = "";
+    private lang: string = "";
     constructor(private manager: User, private interaction?: SelectMenuInteraction) { }
 
     static async createHandler(manager: User, interaction?: SelectMenuInteraction) {
@@ -19,18 +19,17 @@ class NewNoteHandler {
             await handler.load();
         } catch (error) {
             console.log(error);
-
         }
         return handler;
     }
 
     async load() {
+        const memberManagement = await DataBase.memberManagementCollection.findOne({ managerId: this.manager.id });
+        if (!memberManagement) return;
         this.note = await DataBase.noteCollection.findOne({ managerId: this.manager.id, content: { $exists: 0 }, deleted: false }) as any || this.note;
-
-        if (this.interaction !== undefined) {
-            this.guildId = (this.interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === "Guild ID:")?.value as string;
-            this.memberId = (this.interaction as SelectMenuInteraction).message.embeds[0].fields?.find(f => f.name === Config.memberIDFooter)?.value as string;
-        }
+        this.note.guildId = memberManagement.guildId;
+        this.memberId = memberManagement.memberId;
+        this.lang = (await DataBase.guildsCollection.findOne({ guildId: this.note.guildId }))?.language || "en";
     }
 
     async save() {
@@ -46,6 +45,10 @@ class NewNoteHandler {
 
     }
 
+    getMessageFromLang(key: string) {
+        return LanguageHandler.getMessageByLang(key, this.lang);
+    }
+
     async getActionName() {
         const doc = await DataBase.memberManagementCollection.findOne({ managerId: this.note.managerId });
         if (!doc) return;
@@ -58,21 +61,15 @@ class NewNoteHandler {
     }
 
     async addNote() {
-        if (!this.interaction || !this.interaction.channel) return;
-        this.note = { managerId: this.interaction.user.id, memberId: this.memberId, guildId: this.guildId, deleted: false }
-        await this.interaction.channel.send("Please write the note you would like to add.")
-        await this.interaction.update({ embeds: [Embeds.noteMemberMessage(this.note.memberId, this.note.guildId)], components: [Components.memberNoteMenu()] });
-    }
-
-    async sendRemoveNoteMessage() {
-        if (!this.interaction || !this.interaction.channel) return;
-        await this.interaction.channel.send("Please type the note **number** you would like to remove.");
-        await this.interaction.update({ embeds: [Embeds.noteMemberMessage(this.note.memberId, this.note.guildId)], components: [Components.memberNoteMenu()] });
+        if (!this.interaction || !this.interaction.channel || !this.note.guildId) return;
+        this.note = { managerId: this.interaction.user.id, memberId: this.memberId, guildId: this.note.guildId, deleted: false };
+        await this.interaction.channel.send(await this.getMessageFromLang('addNote'));
+        await this.interaction.update({ embeds: [Embeds.noteMemberMessage(this.lang, this.note.memberId, this.note.guildId)], components: [Components.memberNoteMenu(this.lang)] });
     }
 
     async setNoteContent(message: Message) {
         this.note.content = message.content;
-        await message.reply("Oh wow! that a really nice note right there :D")
+        await message.reply(this.getMessageFromLang('addNoteReply'));
     }
 }
 

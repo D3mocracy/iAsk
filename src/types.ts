@@ -26,6 +26,7 @@ export type Action = {
     managerId: string,
     memberId: string,
     guildId?: string,
+    lang: string
 }
 
 export type Note = {
@@ -45,6 +46,7 @@ export type ManageMSG = {
     sent: boolean,
     deleted: boolean,
     _id?: boolean,
+    lang: string,
 }
 
 export type SetupConfig = {

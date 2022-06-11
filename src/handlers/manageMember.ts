@@ -2,8 +2,9 @@ import { Client, DMChannel, Guild, GuildMember, SelectMenuInteraction, TextChann
 import DataBase from "../db";
 import Components from "../embedsAndComps/components";
 import Embeds from "../embedsAndComps/Embeds";
-import { Action } from "../types";
+import { Action, SetupConfig } from "../types";
 import Utils from "../utils";
+import LanguageHandler from "./language";
 import RankHandler, { Rank } from "./rank";
 
 class ManageMemberHanlder {
@@ -24,13 +25,17 @@ class ManageMemberHanlder {
         await DataBase.memberManagementCollection.updateOne({ managerId: this.manager.id }, { $set: this.action }, { upsert: true });
     }
 
+    private getMessageFromLangHandler(key: string) {
+        return LanguageHandler.getMessageByLang(key, this.action.lang);
+    }
+
     getManagerAsMember(): GuildMember {
         if (!this.action.guildId) return {} as any;
         return Utils.convertIDtoMemberFromGuild(this.bot, this.manager.id, this.action.guildId) as GuildMember;
     }
 
     async updateInteractionToMemberManageMenu(interaction: SelectMenuInteraction) {
-        await interaction.update({ embeds: [Embeds.memberManageMessage(this.member, interaction.values[0])], components: [await Components.memberManagementMenu(this.getManagerAsMember())] });
+        await interaction.update({ embeds: [Embeds.memberManageMessage(this.action.lang, this.member, interaction.values[0])], components: [await Components.memberManagementMenu(this.action.lang, this.getManagerAsMember())] });
 
     }
 
@@ -41,19 +46,21 @@ class ManageMemberHanlder {
     }
 
     async createNewAction(channel: DMChannel) {
-        this.action = { managerId: this.manager.id, memberId: this.member.id }
+        this.action = { managerId: this.manager.id, memberId: this.member.id, lang: "en" }
         const user = Utils.convertIDtoUser(this.bot, this.member.id);
         if (!user) return;
         if ((await Utils.commonGuildCheck(this.bot, user, this.manager as User)).length !== 0) {
-            await channel.send({ embeds: [Embeds.chooseGuildManageMember], components: [await Components.chooseGuildMenuManageMember(this.bot, user, this.manager)] });
+            await channel.send({ embeds: [Embeds.chooseGuildManageMember], components: [await Components.chooseGuildMenuManageMember("en", this.bot, user, this.manager)] });
         } else {
-            await channel.send("Error: can't find common guild between u 2, maybe you should invite him...")
+            await channel.send(this.getMessageFromLangHandler('noCommonGuildsError'));
         }
 
     }
 
     async chooseGuild(guildId: string) {
         this.action.guildId = guildId;
+        const guildObj: SetupConfig = await DataBase.guildsCollection.findOne({ guildId }) as any;
+        this.action.lang = guildObj.language || "en";
     }
 
     async isStaff(): Promise<boolean> {
@@ -67,21 +74,22 @@ class ManageMemberHanlder {
         if (!this.action.guildId) return;
         const guild = await this.bot.guilds.fetch(this.action.guildId);
         await (await guild.members.fetch(this.action.memberId)).kick("iAsk kick - kicked by management");
-        await interaction.update({ content: "Kicked member!" });
+        await interaction.update({ content: this.getMessageFromLangHandler('kickedMember'), components: [], embeds: [] });
     }
 
     async banMember(interaction: SelectMenuInteraction) {
         if (!this.action.guildId) return;
         const guild = await this.bot.guilds.fetch(this.action.guildId);
         await (await guild.members.fetch(this.action.memberId)).ban();
-        await interaction.update({ content: "Banned member!" });
+        await interaction.update({ content: this.getMessageFromLangHandler('kickedMember'), components: [], embeds: [] });
     }
 
     async updateToBlockMenu(interaction: SelectMenuInteraction) {
-        await interaction.update({ embeds: [Embeds.blockMemberMessage(this.action.memberId, this.action.guildId as string)], components: [await Components.memberBlockMenu(this.getManagerAsMember())] });
+        await interaction.update({ embeds: [Embeds.blockMemberMessage(this.action.lang, this.action.memberId, this.action.guildId as string)], components: [await Components.memberBlockMenu(this.action.lang, this.getManagerAsMember())] });
     }
 
     async blockMember(interaction: SelectMenuInteraction) {
+        const blockedMessage = this.getMessageFromLangHandler('blockedMemberMessage');
         if (!this.action.guildId) return;
         const guild = await this.bot.guilds.fetch(this.action.guildId);
         const convertToTime: any = {
@@ -93,12 +101,12 @@ class ManageMemberHanlder {
             "block-unblock": null,
         }
         await (await guild.members.fetch(this.action.memberId)).timeout(convertToTime[interaction.values[0]]);
-        await interaction.update({ content: convertToTime[interaction.values[0]] ? "Member blocked!" : "Unblocked member", embeds: [], components: [] })
+        await interaction.update({ content: convertToTime[interaction.values[0]] ? blockedMessage.blocked : blockedMessage.unblocked, embeds: [], components: [] })
 
     }
 
     async updateToNoteMenu(interaction: SelectMenuInteraction) {
-        await interaction.update({ embeds: [Embeds.noteMemberMessage(this.action.memberId, this.action.guildId || "Guild Error")], components: [Components.memberNoteMenu()] });
+        await interaction.update({ embeds: [Embeds.noteMemberMessage(this.action.lang, this.action.memberId, this.action.guildId || "Guild Error")], components: [Components.memberNoteMenu(this.action.lang)] });
     }
 
     async insertDetailsToNoteManagerHanlder(memberId: string, managerId: string, guildId: string) {
@@ -107,7 +115,7 @@ class ManageMemberHanlder {
 
     async insertDetailsToManagementMessageHandler(interaction: SelectMenuInteraction) {
         await DataBase.managementMessageCollection.insertOne({ memberId: this.action.memberId, managerId: this.manager.id, guildId: this.action.guildId, sent: false, deleted: false });
-        await interaction.update({ content: "Type the message please", embeds: [], components: [] });
+        await interaction.update({ content: this.getMessageFromLangHandler('writeManagementMessage'), embeds: [], components: [] });
     }
 
 

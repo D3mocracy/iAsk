@@ -30,11 +30,7 @@ class Config {
     @configurable()
     static readonly chooseGuildEmbedMessageTitleOpenQuestion: any;
     @configurable()
-    static readonly sureNoTitle: any;
-    @configurable()
-    static readonly sureNoDescription: any;
-    @configurable()
-    static readonly sureNoFooter: any;
+    static readonly sureNo: any;
     @configurable()
     static readonly chooseTitleMessage: any;
     @configurable()
@@ -59,6 +55,72 @@ class Config {
     static readonly channelIDString: any;
     @configurable()
     static readonly creatorTag: any;
+    @configurable()
+    static readonly chooseOption: any;
+    @configurable()
+    static readonly channelOptions: any;
+    @configurable()
+    static readonly questionManageMessage: any;
+    @configurable()
+    static readonly questionDeleteMemberOrTrusted: any;
+    @configurable()
+    static readonly channelDeletedMessage: any;
+    @configurable()
+    static readonly alreadyLocked: any;
+    @configurable()
+    static readonly alreadyUnlocked: any;
+    @configurable()
+    static readonly changeDetailsMessages: any;
+    @configurable()
+    static readonly changeDetailsEmbed: any;
+    @configurable()
+    static readonly changeDetailsOption: any;
+    @configurable()
+    static readonly noCommonGuildsError: any;
+    @configurable()
+    static readonly memberManageOptions: any;
+    @configurable()
+    static readonly memberManageEmbed: any;
+    @configurable()
+    static readonly kickedMember: any;
+    @configurable()
+    static readonly bannedMember: any;
+    @configurable()
+    static readonly blockedMemberMessage: any;
+    @configurable()
+    static readonly writeManagementMessage: any;
+    @configurable()
+    static readonly managementMessageEmbed: any;
+    @configurable()
+    static readonly managementMessageScore: any;
+    @configurable()
+    static readonly blockOptions: any;
+    @configurable()
+    static readonly blockMemberMessageEmbed: any;
+    @configurable()
+    static readonly noteOptions: any;
+    @configurable()
+    static readonly addNote: any;
+    @configurable()
+    static readonly addNoteReply: any;
+    @configurable()
+    static readonly errorNotes: any;
+    @configurable()
+    static readonly notesReseted: any;
+    @configurable()
+    static readonly memberNotes: any;
+    @configurable()
+    static readonly removeNotesReply: any;
+    @configurable()
+    static readonly noteMemberMessageEmbed: any;
+    @configurable()
+    static readonly removeNoteEmbed: any;
+    @configurable()
+    static readonly note: any;
+    @configurable()
+    static readonly memberManageQuestionEmbed: any;
+    @configurable()
+    static readonly notificationEmbed: any;
 
     @configurable()
     static readonly sureMessageEmbedColor: ColorResolvable = "GOLD";
@@ -86,8 +148,6 @@ class Config {
     @configurable()
     static readonly manageMember: string = "member";
 
-    @configurable()
-    static readonly channelIDFooter: string = "Channel ID:";
 
     @configurable()
     static readonly memberIDFooter: string = "Member ID:";
