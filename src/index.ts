@@ -307,9 +307,8 @@ client.on('interactionCreate', async interaction => {
             } else if (interaction.customId === "sure-no") {
                 await openQuestionHandler.sureNo();
             } else if (interaction.customId === 'cancel') {
-                await openQuestionHandler.deleteQuestion();
+                await openQuestionHandler.deleteQuestion(interaction);
                 await openQuestionHandler.save();
-                await interaction.update({ content: "As you wish..I canceled you question.", embeds: [], components: [] });
                 return;
             }
         }

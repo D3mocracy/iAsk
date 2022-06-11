@@ -1,4 +1,4 @@
-import { CategoryChannelResolvable, Client, DMChannel, Guild, GuildMember, Message, MessageEmbed, MessageOptions, SelectMenuInteraction, User, Util } from "discord.js";
+import { ButtonInteraction, CategoryChannelResolvable, Client, DMChannel, Guild, GuildMember, Message, MessageEmbed, MessageOptions, SelectMenuInteraction, User, Util } from "discord.js";
 import Config from "../config";
 import Components from "../embedsAndComps/components";
 import DataBase from "../db";
@@ -89,8 +89,10 @@ class OpenQuestionHandler {
         await this.sendSureMessage();
     }
 
-    async deleteQuestion() {
+    async deleteQuestion(interaction: ButtonInteraction) {
+        const cancelQuestionMessage = LanguageHandler.getMessageByLang('cancelQuestionMessage', this.lang)
         this.question.deleted = true;
+        await interaction.update({ content: cancelQuestionMessage, embeds: [], components: [] });
     }
 
     async createChannelOnGuild() {
