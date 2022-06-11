@@ -212,7 +212,7 @@ client.on('interactionCreate', async interaction => {
             await manageQuestionHandler.log(interaction.values[0]);
             await options[interaction.values[0]]();
             await manageQuestionHandler.save();
-            interaction.update({ components: [await manageQuestionHandler.manageQuestionComp() as MessageActionRow] });
+            await manageQuestionHandler.updateEmbedAndCompManager(interaction);
 
         } else if (interaction.customId === "change-dtl") {
             const footer: string = (interaction as SelectMenuInteraction).message.embeds[0].footer?.text as string;

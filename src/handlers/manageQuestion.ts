@@ -43,8 +43,12 @@ class ManageQuestionHandler {
         this.lang = guildObj.language || "en";
     }
 
+    async updateEmbedAndCompManager(interaction: SelectMenuInteraction) {
+        await interaction.update({ components: [await this.manageQuestionComp(this.lang) as MessageActionRow] });
+    }
+
     async sendMemberQuestionManageMessage() {
-        await this.dmChannel.send({ embeds: [Embeds.questionManageMember(this.lang, this.question.channelId as string)], components: [await this.manageQuestionComp() as MessageActionRow] })
+        await this.dmChannel.send({ embeds: [Embeds.questionManageMember(this.question.lang, this.question.channelId as string)], components: [await this.manageQuestionComp(this.question.lang) as MessageActionRow] })
     }
 
     private getMessageFromLangHandler(key: string) {
@@ -55,20 +59,14 @@ class ManageQuestionHandler {
         return this.sender.id === this.question.authorId;
     }
 
-    async memberManageQuestionComp(hours: number) {
-        if (!this.bot || !this.sender || !this.question.guildId) return;
-        const member = Utils.convertIDtoMemberFromGuild(this.bot, this.sender.id, this.question.guildId) as GuildMember;
-
-    }
-
     async sendManageQuestionMessage(message: Message) {
-        await message.reply({ embeds: [Embeds.questionManageMessage(this.lang, this.questionChannelId)], components: [await this.manageQuestionComp() as MessageActionRow] });
+        await message.reply({ embeds: [Embeds.questionManageMessage(this.lang, this.questionChannelId, `https://discord.com/channels/${this.question.guildId}/${this.question.channelId}`)], components: [await this.manageQuestionComp(this.lang) as MessageActionRow] });
     }
 
-    async manageQuestionComp() {
+    async manageQuestionComp(lang: string) {
         if (!this.bot || !this.sender || !this.question.guildId) return;
         const member = Utils.convertIDtoMemberFromGuild(this.bot, this.sender.id, this.question.guildId) as GuildMember;
-        return await Components.manageQuestionMenu(this.lang, member);
+        return await Components.manageQuestionMenu(lang, member);
     }
 
     get questionObject() {

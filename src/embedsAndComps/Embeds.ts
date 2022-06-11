@@ -5,7 +5,7 @@ import LanguageHandler from "../handlers/language";
 import Utils from "../utils";
 
 namespace Embeds {
-    const author = { name: "iAsk Assistant", iconURL: "https://i.imgur.com/I7EoZkF.png" };
+    const author = { name: "iAsk Bot", iconURL: "https://i.imgur.com/I7EoZkF.png" };
 
     export function chooseGuildOpenQuestion(lang: string) {
         const msg = new MessageEmbed({
@@ -53,9 +53,10 @@ namespace Embeds {
         return msg;
     }
 
-    export function questionManageMessage(lang: string, channelId: string) {
+    export function questionManageMessage(lang: string, channelId: string, url: string) {
         const msg = new MessageEmbed({
             author,
+            url,
             title: LanguageHandler.getMessageByLang('questionManageMessage', lang).title,
             description: LanguageHandler.getMessageByLang('questionManageMessage', lang).description,
             thumbnail: { url: 'https://i.imgur.com/oK6Fu1z.png' },
