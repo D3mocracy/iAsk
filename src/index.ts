@@ -1,8 +1,7 @@
 require("dotenv").config();
-import { Client, CollectorFilter, DMChannel, Intents, Message, MessageActionRow, MessageReaction, ReactionCollector, ReactionCollectorOptions, ReactionEmoji, ReactionManager, SelectMenuInteraction, TextChannel, User } from "discord.js";
+import { Client, DMChannel, Intents, MessageActionRow, MessageReaction, SelectMenuInteraction, TextChannel, User } from "discord.js";
 import Config from "./config";
 import DataBase from "./db";
-import Components from "./embedsAndComps/components";
 import Embeds from "./embedsAndComps/Embeds";
 import ChangeDetailsHandler from "./handlers/changeDetails";
 import ManageMemberHanlder from "./handlers/manageMember";
@@ -17,7 +16,6 @@ import RankHandler, { Rank } from "./handlers/rank";
 import { Question, SetupConfig } from "./types";
 import { init as dbConfigInit } from "./jobs/dbConfig";
 import { languageInit } from "./jobs/dbLanguage";
-import LanguageDBHandler from "./config/languageDBHandler";
 import LanguageHandler from "./handlers/language";
 import ReactionHandler from "./handlers/reactionHandler";
 export const client: Client = new Client({ partials: ["CHANNEL"], intents: new Intents(32767) });
@@ -75,7 +73,6 @@ client.on("messageCreate", async message => {
             const channel = await guild.channels.fetch(manageQuestionHandler.questionObject.channelId as string);
             if (!channel) return;
             await manageQuestionHandler.sendMemberQuestionManageMessage();
-            // await message.channel.send({ embeds: [Embeds.questionManageMember(channel.id)], components: [await manageQuestionHandler.manageQuestionComp() as MessageActionRow] })
             return;
         }
 
@@ -86,7 +83,6 @@ client.on("messageCreate", async message => {
                     if (!manageQuestionHandler) return;
                     if (await manageQuestionHandler.isStaff()) {
                         await manageQuestionHandler.sendManageQuestionMessage(message);
-                        // await message.reply({ embeds: [Embeds.questionManageMessage(args[2])], components: [await manageQuestionHandler.manageQuestionComp() as MessageActionRow] });
                     } else {
                         await message.reply("Sorry, you are not a staff member on that guild.");
                         return;

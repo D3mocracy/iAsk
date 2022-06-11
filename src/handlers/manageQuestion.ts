@@ -125,7 +125,7 @@ class ManageQuestionHandler {
     async lockQuestion() {
         if (!this.question.lock) {
             this.question.lock = true;
-            await this.questionChannel.send({ embeds: [Embeds.lockQuestion] });
+            await this.questionChannel.send({ embeds: [Embeds.lockedEmbedMessage(this.lang)] });
             let guild = await this.bot.guilds.fetch(this.questionChannel.guildId);
             await this.questionChannel.permissionOverwrites.create(guild.roles.everyone, { SEND_MESSAGES: false });
         } else {
@@ -137,7 +137,7 @@ class ManageQuestionHandler {
     async unlockQuestion() {
         if (this.question.lock) {
             this.question.lock = false;
-            await this.questionChannel.send({ embeds: [Embeds.unlockQuestion] });
+            await this.questionChannel.send({ embeds: [Embeds.unlockQuestion(this.lang)] });
             let guild = await this.bot.guilds.fetch(this.questionChannel.guildId);
             await this.questionChannel.permissionOverwrites.create(guild.roles.everyone, { SEND_MESSAGES: true });
         } else {

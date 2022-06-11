@@ -58,8 +58,6 @@ namespace Embeds {
             author,
             title: LanguageHandler.getMessageByLang('questionManageMessage', lang).title,
             description: LanguageHandler.getMessageByLang('questionManageMessage', lang).description,
-            // title: "Management CP - Channel Edition",
-            // description: "Please choose one of the options down below.",
             thumbnail: { url: 'https://i.imgur.com/oK6Fu1z.png' },
             footer: { text: `${LanguageHandler.getMessageByLang('channelIDString', lang)} ${channelId}` },
             color: 'LIGHT_GREY'
@@ -228,17 +226,25 @@ namespace Embeds {
         color: 'RED'
     });
 
-    export const lockQuestion = new MessageEmbed({
-        title: "Locked",
-        description: "Question is now locked",
-        color: "RED"
-    });
+    export function lockedEmbedMessage(lang: string) {
+        const locked = LanguageHandler.getMessageByLang('lockedEmbed', lang);
+        const lockQuestion = new MessageEmbed({
+            title: locked.title,
+            description: locked.description,
+            color: "RED"
+        });
 
-    export const unlockQuestion = new MessageEmbed({
-        title: "Unlocked",
-        description: "Question is now unlocked",
-        color: "GREEN"
-    });
+        return lockQuestion;
+    }
+    export function unlockQuestion(lang: string) {
+        const unlocked = LanguageHandler.getMessageByLang('unlockedEmbed', lang);
+        const msg = new MessageEmbed({
+            title: unlocked.title,
+            description: unlocked.description,
+            color: "GREEN"
+        });
+        return msg;
+    }
 
     export function changeDetails(lang: string, channelId: string) {
         const changeDetailsEmbed = LanguageHandler.getMessageByLang('changeDetailsEmbed', lang);

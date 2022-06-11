@@ -121,6 +121,10 @@ class Config {
     static readonly memberManageQuestionEmbed: any;
     @configurable()
     static readonly notificationEmbed: any;
+    @configurable()
+    static readonly lockedEmbed: any;
+    @configurable()
+    static readonly unlockedEmbed: any;
 
     @configurable()
     static readonly sureMessageEmbedColor: ColorResolvable = "GOLD";
@@ -147,10 +151,6 @@ class Config {
 
     @configurable()
     static readonly manageMember: string = "member";
-
-
-    @configurable()
-    static readonly memberIDFooter: string = "Member ID:";
 
     @configurable()
     static readonly cantFindMessageError: string = "Error: can't find this channel.";
