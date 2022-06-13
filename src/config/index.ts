@@ -127,6 +127,8 @@ class Config {
     static readonly unlockedEmbed: any;
     @configurable()
     static readonly cancelQuestionMessage: any;
+    @configurable()
+    static readonly logToolTitle: any;
 
     @configurable()
     static readonly sureMessageEmbedColor: ColorResolvable = "GOLD";

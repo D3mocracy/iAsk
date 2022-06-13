@@ -36,7 +36,6 @@ class ManageMemberHanlder {
 
     async updateInteractionToMemberManageMenu(interaction: SelectMenuInteraction) {
         await interaction.update({ embeds: [Embeds.memberManageMessage(this.action.lang, this.member, interaction.values[0])], components: [await Components.memberManagementMenu(this.action.lang, this.getManagerAsMember())] });
-
     }
 
     static async getMemberIdFromDBByManagerId(manager: User) {

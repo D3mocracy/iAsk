@@ -5,7 +5,7 @@ import LanguageHandler from "../handlers/language";
 import Utils from "../utils";
 
 namespace Embeds {
-    const author = { name: "iAsk Bot", iconURL: "https://i.imgur.com/I7EoZkF.png" };
+    const author = { name: "iAsk Bot - D3mocracy#8662", iconURL: "https://i.imgur.com/I7EoZkF.png", url: 'https://discord.com/users/243380679763558400' };
 
     export function chooseGuildOpenQuestion(lang: string) {
         const msg = new MessageEmbed({
@@ -61,7 +61,7 @@ namespace Embeds {
             description: LanguageHandler.getMessageByLang('questionManageMessage', lang).description,
             thumbnail: { url: 'https://i.imgur.com/oK6Fu1z.png' },
             footer: { text: `${LanguageHandler.getMessageByLang('channelIDString', lang)} ${channelId}` },
-            color: 'LIGHT_GREY'
+            color: 'LIGHT_GREY',
         });
         return msg;
     }
@@ -183,9 +183,11 @@ namespace Embeds {
         return msg;
     }
 
-    export function manageLogMessage(toolName: string, managerTag: string, questionId: string) {
+    export function manageLogMessage(toolName: string, managerTag: string, questionId: string, lang: string) {
+        const logToolTitle = LanguageHandler.getMessageByLang('logToolTitle', lang);
+
         const msg = new MessageEmbed({
-            title: `${toolName.toUpperCase().replaceAll("-", " ")}`,
+            title: logToolTitle[toolName], //`${toolName.toUpperCase().replaceAll("-", " ")}`
             footer: { text: `${new Date()}` },
             color: 'RANDOM'
         }).setFields(

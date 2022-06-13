@@ -76,7 +76,7 @@ class ManageQuestionHandler {
     async log(toolName: string) {
         const guild = await this.bot.guilds.fetch(this.question.guildId as string);
         const channelLog = await guild.channels.fetch((await SetupHanlder.getConfigObject(this.question.guildId as string)).manageToolLogChannelID)
-        LogHandler.logManagerTool(this.bot, channelLog as TextChannel, toolName, this.question.channelId as string, this.sender.tag);
+        LogHandler.logManagerTool(channelLog as TextChannel, toolName, this.question.channelId as string, this.sender.tag);
     }
 
     async checkIfCanDelete(): Promise<boolean> {

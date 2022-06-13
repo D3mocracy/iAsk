@@ -137,7 +137,7 @@ namespace Components {
     export async function memberManagementMenu(lang: string, member: GuildMember) {
         const memberManagementMenu = new MessageSelectMenu().setCustomId('mbr-mng').setPlaceholder(LanguageHandler.getMessageByLang('chooseOption', lang));
         const rankHandler = await RankHandler.createHandler(member);
-        memberManagementMenu.addOptions(memberOptions(lang).filter(o => rankHandler.getManageRanks().every(rank => o.rank.includes(rank))));
+        memberManagementMenu.addOptions(memberOptions(lang).filter(o => rankHandler.getManageRanks().some(rank => o.rank.includes(rank))));
         return new MessageActionRow().addComponents(memberManagementMenu);
     }
 
@@ -158,7 +158,7 @@ namespace Components {
     export async function memberBlockMenu(lang: string, member: GuildMember) {
         const memberBlockMenu = new MessageSelectMenu().setCustomId('block-mbr').setPlaceholder(LanguageHandler.getMessageByLang('chooseOption', lang));
         const rankHandler = await RankHandler.createHandler(member);
-        memberBlockMenu.addOptions(memberBlockOptions(lang).filter(o => rankHandler.getManageRanks().every(rank => o.rank.includes(rank))));
+        memberBlockMenu.addOptions(memberBlockOptions(lang).filter(o => rankHandler.getManageRanks().some(rank => o.rank.includes(rank))));
         return new MessageActionRow().addComponents(memberBlockMenu);
     };
 
