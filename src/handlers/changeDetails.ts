@@ -51,13 +51,10 @@ class ChangeDetailsHandler {
     }
 
     async setTitle(newTitle: string) {
-        this.question.title = newTitle;
+        newTitle.length > 100 ? this.question.title = `${newTitle.slice(0, 97)}...` : this.question.title = newTitle;
         if (!this.channel) return;
-        await this.channel.setName(newTitle);
+        await this.channel.setName(this.question.title);
         await this.sendNewQuestionMessage();
-
-
-
     }
     async setDescription(newDescription: string) {
         this.question.description = newDescription;

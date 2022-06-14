@@ -52,7 +52,7 @@ class RankHandler {
         return roles;
     }
 
-    getManageRanks() {
+    getBotRanks() {
         const ranks = [Rank.MEMBER, Rank.NOTIFICATION, Rank.TRUSTED, Rank.SUPERVISOR, Rank.MANAGER];
         return ranks.filter(rank => !!this.getManageRoles().find(role => this.converter[rank].id === role.id));
     }
@@ -69,6 +69,10 @@ class RankHandler {
 
     async addRank(rank: Rank) {
         await this.member.roles.add(this.converter[rank]);
+    }
+
+    isStaff(): boolean {
+        return this.hasRank(Rank.MANAGER) || this.hasRank(Rank.SUPERVISOR);
     }
 }
 

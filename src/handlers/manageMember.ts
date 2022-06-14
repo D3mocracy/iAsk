@@ -25,6 +25,13 @@ class ManageMemberHanlder {
         await DataBase.memberManagementCollection.updateOne({ managerId: this.manager.id }, { $set: this.action }, { upsert: true });
     }
 
+    /*private async canManage() {
+        if (!this.action.guildId) return;
+        const targetRankHandler = await RankHandler.createHandler(Utils.convertIDtoMemberFromGuild(this.bot, this.action.memberId, this.action.guildId));
+        const managerRankHandler = await RankHandler.createHandler(Utils.convertIDtoMemberFromGuild(this.bot, this.action.managerId, this.action.guildId));
+        return [targetRankHandler.getBotRanks(), managerRankHandler];
+    }*/
+
     private getMessageFromLangHandler(key: string) {
         return LanguageHandler.getMessageByLang(key, this.action.lang);
     }
@@ -56,30 +63,43 @@ class ManageMemberHanlder {
 
     }
 
-    async chooseGuild(guildId: string) {
+    async chooseGuild(interaction: SelectMenuInteraction) {
+        const guildId = interaction.values[0];
+        const targetRankHandler = await RankHandler.createHandler(Utils.convertIDtoMemberFromGuild(this.bot, this.action.memberId, guildId));
+        const manager = Utils.convertIDtoMemberFromGuild(this.bot, this.action.managerId, guildId);
+        if (targetRankHandler.hasRank(Rank.MANAGER) && (!manager.permissions.has('ADMINISTRATOR'))) {
+            await interaction.update({ content: LanguageHandler.getMessageByLang('dontHavePermissions', this.action.lang), embeds: [], components: [] })
+            return;
+        }
         this.action.guildId = guildId;
         const guildObj: SetupConfig = await DataBase.guildsCollection.findOne({ guildId }) as any;
         this.action.lang = guildObj.language || "en";
-    }
-
-    async isStaff(): Promise<boolean> {
-        if (!this.action.guildId) return false;
-        const member = await (await this.bot.guilds.fetch(this.action.guildId)).members.fetch(this.manager.id);
-        const rankHandler = await RankHandler.createHandler(member);
-        return rankHandler.hasRank(Rank.SUPERVISOR) || rankHandler.hasRank(Rank.MANAGER);
+        this.updateInteractionToMemberManageMenu(interaction);
     }
 
     async kickMember(interaction: SelectMenuInteraction) {
+        const dontHavePermissions = LanguageHandler.getMessageByLang('dontHavePermissions', this.action.lang);
         if (!this.action.guildId) return;
         const guild = await this.bot.guilds.fetch(this.action.guildId);
-        await (await guild.members.fetch(this.action.memberId)).kick("iAsk kick - kicked by management");
+        const member = await guild.members.fetch(this.action.memberId)
+        if (!member.kickable) {
+            await interaction.reply(`${dontHavePermissions}`);
+            return;
+        }
+        await member.kick("iAsk kick - kicked by management");
         await interaction.update({ content: this.getMessageFromLangHandler('kickedMember'), components: [], embeds: [] });
     }
 
     async banMember(interaction: SelectMenuInteraction) {
+        const dontHavePermissions = LanguageHandler.getMessageByLang('dontHavePermissions', this.action.lang);
         if (!this.action.guildId) return;
         const guild = await this.bot.guilds.fetch(this.action.guildId);
-        await (await guild.members.fetch(this.action.memberId)).ban();
+        const member = await guild.members.fetch(this.action.memberId);
+        if (!member.bannable) {
+            await interaction.reply(`${dontHavePermissions}`);
+            return;
+        }
+        await member.ban();
         await interaction.update({ content: this.getMessageFromLangHandler('kickedMember'), components: [], embeds: [] });
     }
 

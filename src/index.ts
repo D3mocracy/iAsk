@@ -18,11 +18,12 @@ import { init as dbConfigInit } from "./jobs/dbConfig";
 import { languageInit } from "./jobs/dbLanguage";
 import LanguageHandler from "./handlers/language";
 import ReactionHandler from "./handlers/reactionHandler";
+import ErrorHandler from "./handlers/error";
 export const client: Client = new Client({ partials: ["CHANNEL"], intents: new Intents(32767) });
 
 
 client.on("ready", async () => {
-    console.log("iAsk is online! :D");
+    console.log("iAsk Dev is online! :D");
 })
 
 client.on("messageCreate", async message => {
@@ -90,7 +91,12 @@ client.on("messageCreate", async message => {
 
 
                 } else if (args[1] === Config.manageMember) {
-                    const user = await client.users.fetch(args[2])
+                    const dontHavePermissions = LanguageHandler.getMessageByLang('dontHavePermissions', "en");
+                    const user = client.users.cache.get(args[2]);
+                    if (!user) {
+                        await message.reply("Error 404: Member Not Found")
+                        return;
+                    }
                     const handler = await ManageMemberHanlder.createHandler(client, message.author, user);
                     handler.createNewAction(message.channel as any);
                     handler.save();
@@ -126,6 +132,9 @@ client.on("messageCreate", async message => {
             return;
         }
     } else if (message.channel.type === "GUILD_TEXT" && message.author !== client.user) {
+        if (message.content === '!bot') {
+            await message.reply(`I am currently in ${client.guilds.cache.size}`)
+        }
         if (message.content === "!notif") {
             if (!message.member?.permissions.has('ADMINISTRATOR')) return;
             const lang = (await DataBase.guildsCollection.findOne({ guildId: message.guildId }))?.language || "en";
@@ -186,14 +195,8 @@ client.on('interactionCreate', async interaction => {
                 return;
             }
 
-            await manageMemberHanlder.chooseGuild(interaction.values[0]);
-            if (await manageMemberHanlder.isStaff()) {
-                await manageMemberHanlder.save();
-                await manageMemberHanlder.updateInteractionToMemberManageMenu(interaction);
-            } else {
-                await interaction.update({ content: "Sorry, you are not a staff member on that guild.", embeds: [], components: [] })
-                return;
-            }
+            await manageMemberHanlder.chooseGuild(interaction);
+            await manageMemberHanlder.save();
 
 
         } else if (interaction.customId === "channel-mng") {
@@ -283,9 +286,11 @@ client.on('interactionCreate', async interaction => {
             const messageCollector = interaction.channel.createMessageCollector({ filter, max: 1 });
             messageCollector.on('collect', async msg => {
                 if (args[1] === "title") {
-                    openQuestionHandler.questionObject.title = msg.content;
+                    await openQuestionHandler.chooseTitle(msg.content);
+                    // openQuestionHandler.questionObject.title = msg.content;
                 } else if (args[1] === "description") {
-                    openQuestionHandler.questionObject.description = msg.content;
+                    await openQuestionHandler.chooseDescription(msg.content);
+                    // openQuestionHandler.questionObject.description = msg.content;
                 }
 
             });
@@ -326,17 +331,21 @@ client.on('messageReactionAdd', async (react, user) => {
 })
 
 client.on('channelDelete', async c => {
-    if (!c.isText()) return;
-    const guild = (c as TextChannel).guild;
-    const channel = (c as TextChannel);
-    const config: SetupConfig = await DataBase.guildsCollection.findOne({ guildId: guild.id }) as any;
-    if (!config.questionCatagory) return;
-    const questionCatagory = await guild.channels.fetch(config.questionCatagory);
-    if (!questionCatagory || questionCatagory.type !== "GUILD_CATEGORY") return;
-    if (channel.parent !== questionCatagory) return;
-    const question: Question = await DataBase.questionsCollection.findOne({ guildId: guild.id, channelId: channel.id }) as any;
-    if (!question) return;
-    await DataBase.questionsCollection.updateOne({ guildId: question.guildId, channelId: question.channelId }, { $set: { deleted: true } });
+    try {
+        if (!c.isText()) return;
+        const guild = (c as TextChannel).guild;
+        const channel = (c as TextChannel);
+        const config: SetupConfig = await DataBase.guildsCollection.findOne({ guildId: guild.id }) as any;
+        if (!config || !config.questionCatagory) return;
+        const questionCatagory = await guild.channels.fetch(config.questionCatagory);
+        if (!questionCatagory || questionCatagory.type !== "GUILD_CATEGORY") return;
+        if (channel.parent !== questionCatagory) return;
+        const question: Question = await DataBase.questionsCollection.findOne({ guildId: guild.id, channelId: channel.id }) as any;
+        if (!question) return;
+        await DataBase.questionsCollection.updateOne({ guildId: question.guildId, channelId: question.channelId }, { $set: { deleted: true } });
+    } catch (error) {
+        await ErrorHandler.sendErrorMessage(client, error as Error, (c as TextChannel).guild);
+    }
 })
 
 client.on('guildCreate', async g => {

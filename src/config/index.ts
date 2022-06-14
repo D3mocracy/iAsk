@@ -129,6 +129,12 @@ class Config {
     static readonly cancelQuestionMessage: any;
     @configurable()
     static readonly logToolTitle: any;
+    @configurable()
+    static readonly error404Member: any;
+    @configurable()
+    static readonly dontHavePermissions: any;
+    @configurable()
+    static readonly blockedFromThisGuild: any;
 
     @configurable()
     static readonly sureMessageEmbedColor: ColorResolvable = "GOLD";

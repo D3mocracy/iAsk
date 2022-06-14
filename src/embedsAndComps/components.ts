@@ -70,7 +70,7 @@ namespace Components {
     export async function manageQuestionMenu(lang: string, member: GuildMember) {
         const manageQuestionMenu = new MessageSelectMenu().setCustomId('channel-mng').setPlaceholder(LanguageHandler.getMessageByLang('chooseOption', lang));
         const rankHandler = await RankHandler.createHandler(member);
-        const memberRanks = rankHandler.getManageRanks();
+        const memberRanks = rankHandler.getBotRanks();
         manageQuestionMenu.addOptions(channelOptions(lang).filter(option => option.rank.some(rank => memberRanks.includes(rank))));
         return new MessageActionRow().addComponents(manageQuestionMenu);
     }
@@ -124,9 +124,9 @@ namespace Components {
     function memberOptions(lang: string) {
         const option = LanguageHandler.getMessageByLang('memberManageOptions', lang);
         const memberOptionList: (MessageSelectOptionData & { rank: Rank[] })[] = [
-            { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: option.kick.label, description: option.kick.description, value: "mbr-kick", emoji: '🦵' },
-            { rank: [Rank.MANAGER], label: option.ban.label, description: option.ban.description, value: "mbr-ban", emoji: '🛑' },
-            { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: option.block.label, description: option.block.description, value: "mbr-block", emoji: '🚫' },
+            // { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: option.kick.label, description: option.kick.description, value: "mbr-kick", emoji: '🦵' },
+            // { rank: [Rank.MANAGER], label: option.ban.label, description: option.ban.description, value: "mbr-ban", emoji: '🛑' },
+            // { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: option.block.label, description: option.block.description, value: "mbr-block", emoji: '🚫' },
             { rank: [Rank.MANAGER], label: option.note.label, description: option.note.description, value: "mbr-note", emoji: '🗒️' },
             { rank: [Rank.MANAGER], label: option.managementMessage.label, description: option.managementMessage.description, value: "mbr-management-msg", emoji: '🤵' },
         ];
@@ -137,7 +137,7 @@ namespace Components {
     export async function memberManagementMenu(lang: string, member: GuildMember) {
         const memberManagementMenu = new MessageSelectMenu().setCustomId('mbr-mng').setPlaceholder(LanguageHandler.getMessageByLang('chooseOption', lang));
         const rankHandler = await RankHandler.createHandler(member);
-        memberManagementMenu.addOptions(memberOptions(lang).filter(o => rankHandler.getManageRanks().some(rank => o.rank.includes(rank))));
+        memberManagementMenu.addOptions(memberOptions(lang).filter(o => rankHandler.getBotRanks().some(rank => o.rank.includes(rank))));
         return new MessageActionRow().addComponents(memberManagementMenu);
     }
 
@@ -158,7 +158,7 @@ namespace Components {
     export async function memberBlockMenu(lang: string, member: GuildMember) {
         const memberBlockMenu = new MessageSelectMenu().setCustomId('block-mbr').setPlaceholder(LanguageHandler.getMessageByLang('chooseOption', lang));
         const rankHandler = await RankHandler.createHandler(member);
-        memberBlockMenu.addOptions(memberBlockOptions(lang).filter(o => rankHandler.getManageRanks().some(rank => o.rank.includes(rank))));
+        memberBlockMenu.addOptions(memberBlockOptions(lang).filter(o => rankHandler.getBotRanks().some(rank => o.rank.includes(rank))));
         return new MessageActionRow().addComponents(memberBlockMenu);
     };
 

@@ -26,7 +26,8 @@ class OpenQuestionHandler {
     }
 
     async getDefaultQuestionMessage() {
-        return [Embeds.questionMessage(this.question.lang, this.question.title || "Default Title", this.question.description || 'Default Description', `${this.user.tag}`, this.question.channelId, this.question.guildId)];
+        const anonymousLang = LanguageHandler.getMessageByLang('Anonymous', this.question.lang);
+        return [Embeds.questionMessage(this.question.lang, this.question.title || "Default Title", this.question.description || 'Default Description', this.question.anonymous ? `${anonymousLang}` : `${this.user.tag}`, this.question.channelId, this.question.guildId)];
     }
 
     private getMessageFromLangHandler(key: string) {
@@ -47,8 +48,15 @@ class OpenQuestionHandler {
 
     async chooseGuild(interaction: SelectMenuInteraction) {
         this.question.guildId = interaction.values[0];
+        const member = Utils.convertIDtoMemberFromGuild(this.bot, this.user.id, this.question.guildId);
+        if (member.isCommunicationDisabled()) {
+            await interaction.channel?.send(this.getMessageFromLangHandler('blockedFromThisGuild'));
+            this.question.deleted = true;
+            await interaction.deferUpdate();
+            return;
+        }
         if (await this.isReachedLimit()) {
-            interaction.channel?.send(this.getMessageFromLangHandler('reachLimitQuestionsError'));
+            await interaction.channel?.send(this.getMessageFromLangHandler('reachLimitQuestionsError'));
             this.question.deleted = true;
             await interaction.deferUpdate();
             return;
@@ -64,13 +72,15 @@ class OpenQuestionHandler {
     }
 
     async chooseTitle(title: string) {
-        this.question.title = title;
+        title.length > 100 ? this.question.title = `${title.slice(0, 97)}...` : this.question.title = title;
+        if (this.question.description) return;
         await this.channel.send({ embeds: await this.getDefaultQuestionMessage() });
         await this.channel.send({ content: this.getMessageFromLangHandler('chooseDescriptionMessage') });
     }
 
     async chooseDescription(description: string) {
         this.question.description = description;
+        if (this.question.anonymous !== undefined) return;
         await this.channel.send({ embeds: await this.getDefaultQuestionMessage() });
         await this.channel.send({ content: this.getMessageFromLangHandler("chooseAnonymousMessage"), components: [Components.chooseToBeAnonymousButtons(this.question.lang)] })
 

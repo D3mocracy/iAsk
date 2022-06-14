@@ -259,6 +259,15 @@ namespace Embeds {
         });
     }
 
+    export function errorEmbedMessage(error: Error) {
+        return new MessageEmbed({
+            title: error.name,
+            description: error.message,
+            color: "DARK_RED",
+            footer: { text: `iAsk Developer Tools` }
+        });
+    }
+
 
 
 }
