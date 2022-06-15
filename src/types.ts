@@ -62,4 +62,5 @@ export type SetupConfig = {
     supervisorRoleID: string,
     managerRoleID: string,
     maxQuestions: number,
+    slowModeSecond: number,
 }

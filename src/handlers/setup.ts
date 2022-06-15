@@ -38,6 +38,7 @@ class SetupHanlder {
             { name: "Trusted Role ID:", value: String(this.config.trustedRoleID), inline: false },
             { name: "Supervisor Role ID:", value: String(this.config.supervisorRoleID), inline: false },
             { name: "Manager Role ID:", value: String(this.config.managerRoleID), inline: false },
+            { name: "Slow Mode Question Channel Seconds:", value: String(this.config.slowModeSecond), inline: false },
             { name: "Language:", value: String(this.config.language), inline: false },
         );
         await this.channel.send({ embeds: [embed], components: [Components.helperButtons(), Components.setupMenu()] });
@@ -78,9 +79,9 @@ class SetupHanlder {
                 } else { await this.channel.send("I don't think this is a channel id...") }
             },
             "max-questions-per-member": async () => {
-                if (!isNaN(+value)) {
+                if (!isNaN(+value) && +value > 0) {
                     this.config.maxQuestions = +value
-                } else { await this.channel.send("Please type a number") }
+                } else { await this.channel.send("Please type a number above 0") }
             },
             "notification-role-id": async () => {
                 if (await this.isRole(value)) {
@@ -112,6 +113,11 @@ class SetupHanlder {
                     this.config.language = value.toLowerCase();
                 } else { await this.channel.send("Language must be EN or HE") }
             },
+            "slow-mode": async () => {
+                if (!isNaN(+value) && +value < 21600 && +value >= 0) {
+                    this.config.slowModeSecond = +value
+                } else { await this.channel.send("Please type a number between 0 to 21600") }
+            }
         }
         await options[key]();
         this.config.done = await this.checkDone();
@@ -128,6 +134,7 @@ class SetupHanlder {
             this.config.memberRoleID &&
             this.config.trustedRoleID &&
             this.config.supervisorRoleID &&
+            this.config.slowModeSecond !== undefined &&
             this.config.managerRoleID);
     }
 

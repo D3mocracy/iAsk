@@ -41,6 +41,10 @@ class OpenQuestionHandler {
         await this.channel.send({ embeds: [Embeds.chooseGuildOpenQuestion(this.lang)], components: [await Components.chooseGuildMenuOpenQuestion(this.bot, this.user, this.lang)] })
     }
 
+    async chooseBeforeContinue() {
+        await this.channel.send({ content: Config.pleaseChooseGuildBeforeContinue, embeds: [Embeds.chooseGuildOpenQuestion(this.question.lang)], components: [await Components.chooseGuildMenuOpenQuestion(this.bot, this.user, this.question.lang)] });
+    }
+
     async isReachedLimit() {
         const qList = await DataBase.questionsCollection.find({ authorId: this.user.id, guildId: this.question.guildId, deleted: false }).toArray();
         return qList.length === (await SetupHanlder.getConfigObject(this.question.guildId as string)).maxQuestions;
@@ -108,8 +112,10 @@ class OpenQuestionHandler {
     async createChannelOnGuild() {
         if (!this.question.guildId) throw new MissingGuildIdError();
         const guild = await this.bot.guilds.fetch(this.question.guildId);
+        const setUp = (await SetupHanlder.getConfigObject(guild.id));
         const questionCatagory = await this.bot.channels.fetch((await SetupHanlder.getConfigObject(this.question.guildId)).questionCatagory) as CategoryChannelResolvable;
         const guildChannel = await guild.channels.create(this.question.title || "Error 404", { type: "GUILD_TEXT", parent: questionCatagory });
+        await guildChannel.setRateLimitPerUser(setUp.slowModeSecond);
         this.question.channelId = guildChannel.id;
         await this.channel.send({ embeds: await this.getDefaultQuestionMessage() });
         await guildChannel.send({ embeds: await this.getDefaultQuestionMessage() });

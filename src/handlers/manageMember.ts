@@ -25,13 +25,6 @@ class ManageMemberHanlder {
         await DataBase.memberManagementCollection.updateOne({ managerId: this.manager.id }, { $set: this.action }, { upsert: true });
     }
 
-    /*private async canManage() {
-        if (!this.action.guildId) return;
-        const targetRankHandler = await RankHandler.createHandler(Utils.convertIDtoMemberFromGuild(this.bot, this.action.memberId, this.action.guildId));
-        const managerRankHandler = await RankHandler.createHandler(Utils.convertIDtoMemberFromGuild(this.bot, this.action.managerId, this.action.guildId));
-        return [targetRankHandler.getBotRanks(), managerRankHandler];
-    }*/
-
     private getMessageFromLangHandler(key: string) {
         return LanguageHandler.getMessageByLang(key, this.action.lang);
     }

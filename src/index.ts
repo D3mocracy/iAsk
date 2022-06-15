@@ -23,7 +23,7 @@ export const client: Client = new Client({ partials: ["CHANNEL"], intents: new I
 
 
 client.on("ready", async () => {
-    console.log("iAsk Dev is online! :D");
+    console.log("iAsk is online! :D");
 })
 
 client.on("messageCreate", async message => {
@@ -91,7 +91,6 @@ client.on("messageCreate", async message => {
 
 
                 } else if (args[1] === Config.manageMember) {
-                    const dontHavePermissions = LanguageHandler.getMessageByLang('dontHavePermissions', "en");
                     const user = client.users.cache.get(args[2]);
                     if (!user) {
                         await message.reply("Error 404: Member Not Found")
@@ -120,7 +119,8 @@ client.on("messageCreate", async message => {
 
         if (await OpenQuestionHandler.checkIfUserHasQuestionOnDB(message.author)) {
             if (!openQuesitonHandler.questionObject.guildId) {
-                await message.reply(Config.pleaseChooseGuildBeforeContinue);
+                await openQuesitonHandler.chooseBeforeContinue();
+                // await message.reply(Config.pleaseChooseGuildBeforeContinue);
 
             } else if (!openQuesitonHandler.questionObject.title) {
                 await openQuesitonHandler.chooseTitle(message.content);
@@ -132,9 +132,6 @@ client.on("messageCreate", async message => {
             return;
         }
     } else if (message.channel.type === "GUILD_TEXT" && message.author !== client.user) {
-        if (message.content === '!bot') {
-            await message.reply(`I am currently in ${client.guilds.cache.size}`)
-        }
         if (message.content === "!notif") {
             if (!message.member?.permissions.has('ADMINISTRATOR')) return;
             const lang = (await DataBase.guildsCollection.findOne({ guildId: message.guildId }))?.language || "en";
@@ -287,10 +284,8 @@ client.on('interactionCreate', async interaction => {
             messageCollector.on('collect', async msg => {
                 if (args[1] === "title") {
                     await openQuestionHandler.chooseTitle(msg.content);
-                    // openQuestionHandler.questionObject.title = msg.content;
                 } else if (args[1] === "description") {
                     await openQuestionHandler.chooseDescription(msg.content);
-                    // openQuestionHandler.questionObject.description = msg.content;
                 }
 
             });

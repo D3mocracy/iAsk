@@ -45,6 +45,7 @@ namespace Components {
         { label: "Trusted Role", description: "Change the trusted role ID", value: "trusted-role-id" },
         { label: "Supervisor Role", description: "Change the supervisor role ID", value: "supervisor-role-id" },
         { label: "Manager Role", description: "Change the manager role ID", value: "manager-role-id" },
+        { label: "Slow Mode", description: "Set seconds to slowdown a question channel once made", value: "slow-mode" },
         { label: "Language", description: "Change guild language", value: "guild-language" },
     ];
     export function setupMenu() {
