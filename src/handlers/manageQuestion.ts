@@ -123,7 +123,9 @@ class ManageQuestionHandler {
     async lockQuestion() {
         if (!this.question.lock) {
             this.question.lock = true;
-            await this.questionChannel.send({ embeds: [Embeds.lockedEmbedMessage(this.lang)] });
+            const lockMsg = { embeds: [Embeds.lockedEmbedMessage(this.lang)] };
+            await this.questionChannel.send(lockMsg);
+            await this.dmChannel.send(lockMsg);
             let guild = await this.bot.guilds.fetch(this.questionChannel.guildId);
             await this.questionChannel.permissionOverwrites.create(guild.roles.everyone, { SEND_MESSAGES: false });
         } else {
@@ -135,7 +137,9 @@ class ManageQuestionHandler {
     async unlockQuestion() {
         if (this.question.lock) {
             this.question.lock = false;
-            await this.questionChannel.send({ embeds: [Embeds.unlockQuestion(this.lang)] });
+            const unlockMsg = { embeds: [Embeds.unlockQuestion(this.lang)] };
+            await this.questionChannel.send(unlockMsg);
+            await this.dmChannel.send(unlockMsg);
             let guild = await this.bot.guilds.fetch(this.questionChannel.guildId);
             await this.questionChannel.permissionOverwrites.create(guild.roles.everyone, { SEND_MESSAGES: true });
         } else {
@@ -161,7 +165,7 @@ class ManageQuestionHandler {
         const configMsg = this.getMessageFromLangHandler('changeDetailsMessages');
         const messages: any = {
             "change-title": configMsg.title,
-            "change-description": configMsg.title,
+            "change-description": configMsg.description,
         }
         await DataBase.detailsManagementCollection.updateOne({ managerId: this.sender.id }, { $set: { status: interaction.values[0], channelId: this.questionChannelId } }, { upsert: true });
         await this.dmChannel.send(messages[interaction.values[0]]);
@@ -174,6 +178,19 @@ class ManageQuestionHandler {
         const member = await (await this.bot.guilds.fetch(this.question.guildId)).members.fetch(this.sender.id);
         const rankHandler = await RankHandler.createHandler(member);
         return rankHandler.hasRank(Rank.MANAGER) || rankHandler.hasRank(Rank.SUPERVISOR);
+    }
+
+    async sendAnonMessage() {
+        await this.dmChannel.send(LanguageHandler.getMessageByLang('pleaseWriteAnonMsg', this.question.lang));
+        const messageCollector = this.dmChannel.createMessageCollector({ max: 1 });
+        messageCollector.on('collect', async message => {
+            await this.sendMessageOnChannel(message);
+        });
+    }
+
+    async sendMessageOnChannel(msg: Message) {
+        await this.questionChannel.send({ embeds: [Embeds.anonymousMessage(msg.content, this.question.lang)] });
+        await msg.reply(LanguageHandler.getMessageByLang('sentAnonMsgSuccses', this.question.lang))
     }
 
 }

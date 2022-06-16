@@ -58,6 +58,7 @@ namespace Components {
         const option = LanguageHandler.getMessageByLang('channelOptions', lang);
 
         const channelOptionList: (MessageSelectOptionData & { rank: Rank[] })[] = [
+            { rank: [Rank.MEMBER, Rank.TRUSTED, Rank.SUPERVISOR, Rank.MANAGER], label: option.anonMsg.label, description: option.anonMsg.description, value: "question-anon-msg", emoji: '🕵️‍♂️' },
             { rank: [Rank.MEMBER, Rank.TRUSTED, Rank.SUPERVISOR, Rank.MANAGER], label: option.delete.label, description: option.delete.description, value: "question-del", emoji: '❌' },
             { rank: [Rank.TRUSTED, Rank.SUPERVISOR, Rank.MANAGER], label: option.lock.label, description: option.lock.description, value: "question-lock", emoji: '🔒' },
             { rank: [Rank.TRUSTED, Rank.SUPERVISOR, Rank.MANAGER], label: option.unlock.label, description: option.unlock.description, value: "question-unlock", emoji: '🔓' },

@@ -120,7 +120,6 @@ client.on("messageCreate", async message => {
         if (await OpenQuestionHandler.checkIfUserHasQuestionOnDB(message.author)) {
             if (!openQuesitonHandler.questionObject.guildId) {
                 await openQuesitonHandler.chooseBeforeContinue();
-                // await message.reply(Config.pleaseChooseGuildBeforeContinue);
 
             } else if (!openQuesitonHandler.questionObject.title) {
                 await openQuesitonHandler.chooseTitle(message.content);
@@ -202,6 +201,7 @@ client.on('interactionCreate', async interaction => {
             const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, managedChannelId, interaction.channel, interaction.user);
             if (!manageQuestionHandler) return;
             const options: any = {
+                "question-anon-msg": async () => manageQuestionHandler.sendAnonMessage(),
                 "question-del": async () => manageQuestionHandler.deleteQuestion(),
                 "question-lock": async () => manageQuestionHandler.lockQuestion(),
                 "question-unlock": async () => manageQuestionHandler.unlockQuestion(),

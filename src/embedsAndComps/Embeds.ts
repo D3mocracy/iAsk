@@ -268,6 +268,16 @@ namespace Embeds {
         });
     }
 
+    export function anonymousMessage(msg: string, lang: string) {
+        const anonMessage = LanguageHandler.getMessageByLang('anonMessage', lang);
+        return new MessageEmbed({
+            title: anonMessage.title,
+            description: msg,
+            footer: { text: anonMessage.footer },
+            color: 'DARK_ORANGE'
+        })
+    }
+
 
 
 }

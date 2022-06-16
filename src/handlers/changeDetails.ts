@@ -44,10 +44,13 @@ class ChangeDetailsHandler {
         if (!this.channel || !this.guild) return;
         const member = this.guild.members.cache.get(this.question.authorId);
         if (!member) return;
-        await this.channel.send({
+        const questionMessage = {
             embeds: [Embeds.questionMessage(this.lang, this.question.title as string, this.question.description as string,
                 this.question.anonymous ? LanguageHandler.getMessageByLang('Anonymous', this.lang) : member?.user.tag, this.question.channelId, this.question.guildId)]
-        })
+        }
+        await this.channel.send(questionMessage);
+        if (!this.managerId) return;
+        await (await this.bot.users.fetch(this.managerId)).send(questionMessage);
     }
 
     async setTitle(newTitle: string) {
