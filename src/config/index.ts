@@ -135,6 +135,8 @@ class Config {
     static readonly dontHavePermissions: any;
     @configurable()
     static readonly blockedFromThisGuild: any;
+    @configurable()
+    static readonly questionMessageEmbed: any;
 
     @configurable()
     static readonly sureMessageEmbedColor: ColorResolvable = "GOLD";

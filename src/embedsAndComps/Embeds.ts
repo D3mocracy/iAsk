@@ -6,11 +6,16 @@ import Utils from "../utils";
 
 namespace Embeds {
     const author = { name: "iAsk Bot - D3mocracy#8662", iconURL: "https://i.imgur.com/I7EoZkF.png", url: 'https://discord.com/users/243380679763558400' };
+    const thumbnail = { url: 'https://i.imgur.com/Yr6z4LR.png' };
 
     export function chooseGuildOpenQuestion(lang: string) {
+        const embedDB = LanguageHandler.getMessageByLang("chooseGuildEmbedMessageTitleOpenQuestion", lang)
         const msg = new MessageEmbed({
-            title: LanguageHandler.getMessageByLang("chooseGuildEmbedMessageTitleOpenQuestion", lang),
-            color: "DARK_VIVID_PINK"
+            author, thumbnail,
+            title: embedDB.title,
+            description: embedDB.description,
+            footer: { text: embedDB.footer },
+            color: "YELLOW"
         });
         return msg;
     }
@@ -30,13 +35,14 @@ namespace Embeds {
     }
 
     export function questionMessage(lang: string, title: string, description: string, tag: string, channelId?: string, guildId?: string) {
+        const questionMessageEmbed = LanguageHandler.getMessageByLang('questionMessageEmbed', lang);
         const msg = new MessageEmbed({
-            author: { name: LanguageHandler.getMessageByLang('jumpToQuestion', lang), iconURL: 'https://i.imgur.com/I7EoZkF.png', url: `https://discord.com/channels/${guildId}/${channelId}` },
-            title, description,
-            footer: { text: `${LanguageHandler.getMessageByLang("channelIDString", lang)} ${channelId || ""}` },
+            author, title, description, thumbnail,
+            footer: { text: `${questionMessageEmbed.channelID} ${channelId || ""}` },
             color: 'AQUA'
         }).addFields(
-            { name: `${LanguageHandler.getMessageByLang('creatorTag', lang)} `, value: tag },
+            { name: `${questionMessageEmbed.creatorTag} `, value: tag, inline: true },
+            { name: `${questionMessageEmbed.questionLink} `, value: `[${questionMessageEmbed.clickHere}](https://discord.com/channels/${guildId}/${channelId})`, inline: true },
         );
         return msg;
     };
@@ -54,13 +60,14 @@ namespace Embeds {
     }
 
     export function questionManageMessage(lang: string, channelId: string, url: string) {
+        const embedDB = LanguageHandler.getMessageByLang('questionManageMessage', lang);
         const msg = new MessageEmbed({
             author,
             url,
-            title: LanguageHandler.getMessageByLang('questionManageMessage', lang).title,
-            description: LanguageHandler.getMessageByLang('questionManageMessage', lang).description,
+            title: embedDB.title,
+            description: embedDB.description,
             thumbnail: { url: 'https://i.imgur.com/oK6Fu1z.png' },
-            footer: { text: `${LanguageHandler.getMessageByLang('channelIDString', lang)} ${channelId}` },
+            footer: { text: `${embedDB.channelID} ${channelId}` },
             color: 'LIGHT_GREY',
         });
         return msg;
@@ -135,7 +142,7 @@ namespace Embeds {
         const obj = LanguageHandler.getMessageByLang('managementMessageEmbed', lang);
         const msg = new MessageEmbed({
             title: obj.title,
-            description,
+            description, thumbnail,
             author: { name: obj.author, iconURL: "https://i.imgur.com/I7EoZkF.png" },
             footer: { text: `${obj.footer} ${guild.name}.` },
             color: 'DARK_ORANGE'
@@ -187,7 +194,7 @@ namespace Embeds {
         const logToolTitle = LanguageHandler.getMessageByLang('logToolTitle', lang);
 
         const msg = new MessageEmbed({
-            title: logToolTitle[toolName], //`${toolName.toUpperCase().replaceAll("-", " ")}`
+            title: logToolTitle[toolName],
             footer: { text: `${new Date()}` },
             color: 'RANDOM'
         }).setFields(
@@ -197,6 +204,20 @@ namespace Embeds {
 
         return msg;
     }
+
+    export function questionLogMessage(lang: string, channelId: string) {
+        const questionLogEmbed = LanguageHandler.getMessageByLang('questionLogEmbed', lang);
+        const msg = new MessageEmbed({
+            author, thumbnail,
+            title: questionLogEmbed.title,
+            description: `${questionLogEmbed.footer} ${channelId || "Error 404"}`,
+            footer: { text: `${questionLogEmbed.description}` },
+            color: 'DARK_ORANGE'
+        })
+
+        return msg;
+    }
+
     export function notificationMessage(lang: string) {
         const notifEmbed = LanguageHandler.getMessageByLang('notificationEmbed', lang);
         const notificationMessage = new MessageEmbed({

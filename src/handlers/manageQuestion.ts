@@ -111,7 +111,7 @@ class ManageQuestionHandler {
             const guild = await this.bot.guilds.fetch(this.question.guildId);
             if (!(await this.checkIfCanDelete())) return;
             const questionLogChannel = guild.channels.cache.get((await SetupHanlder.getConfigObject(this.question.guildId)).questionLogChannelID) as any;
-            await LogHandler.logQuestionChannel(this.questionChannel, questionLogChannel)
+            await LogHandler.logQuestionChannel(this.questionChannel, questionLogChannel, this.lang)
             await this.questionChannel.delete();
             this.question.deleted = true;
             await this.dmChannel.send(this.getMessageFromLangHandler('channelDeletedMessage'));
@@ -154,7 +154,7 @@ class ManageQuestionHandler {
     }
 
     async logQuestion() {
-        LogHandler.logQuestionChannel(this.questionChannel, this.dmChannel);
+        LogHandler.logQuestionChannel(this.questionChannel, this.dmChannel, this.lang);
     }
 
     async chooseChangeDetail() {

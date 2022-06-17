@@ -1,5 +1,5 @@
 require("dotenv").config();
-import { Client, DMChannel, Intents, MessageActionRow, MessageReaction, SelectMenuInteraction, TextChannel, User } from "discord.js";
+import { Client, DMChannel, Intents, Message, MessageActionRow, MessageReaction, SelectMenuInteraction, TextChannel, User } from "discord.js";
 import Config from "./config";
 import DataBase from "./db";
 import Embeds from "./embedsAndComps/Embeds";
@@ -277,25 +277,8 @@ client.on('interactionCreate', async interaction => {
         const openQuestionHandler = await OpenQuestionHandler.createHandler(client, interaction.user, interaction.channel);
         const args = interaction.customId.split("-");
         if (args[0] === 'edit') {
-
-            await interaction.channel.send(`Please type a new ${args[1]}`);
-            const filter = (m: any) => m.author.id === interaction.user.id;
-            const messageCollector = interaction.channel.createMessageCollector({ filter, max: 1 });
-            messageCollector.on('collect', async msg => {
-                if (args[1] === "title") {
-                    await openQuestionHandler.chooseTitle(msg.content);
-                } else if (args[1] === "description") {
-                    await openQuestionHandler.chooseDescription(msg.content);
-                }
-
-            });
-            await interaction.update({ components: [] });
-            messageCollector.on('end', async collected => {
-                if (collected.size === 1) {
-                    await openQuestionHandler.save();
-                    await openQuestionHandler.sendSureMessage();
-                }
-            });
+            await openQuestionHandler.createMessageCollector(interaction, args[1]);
+            await openQuestionHandler.save();
             return;
         }
         if (openQuestionHandler.questionObject.anonymous === undefined) {

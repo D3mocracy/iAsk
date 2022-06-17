@@ -91,11 +91,11 @@ class OpenQuestionHandler {
     }
 
     async sendSureMessage() {
+        await this.channel.send({ embeds: (await this.getDefaultQuestionMessage()), });
         await this.channel.send({
             content: this.getMessageFromLangHandler('askSureMessage'),
-            embeds: (await this.getDefaultQuestionMessage()),
             components: [Components.chooseSureMessage(this.question.lang)]
-        });
+        })
     }
 
     async chooseAnonymous(anonymous: boolean) {
@@ -126,6 +126,26 @@ class OpenQuestionHandler {
 
     get questionObject() {
         return this.question;
+    }
+
+    async createMessageCollector(interaction: ButtonInteraction, detail: string) {
+        const filter = (m: Message) => m.author.id === interaction.user.id;
+        const messageCollector = this.channel.createMessageCollector({ filter, max: 1 });
+        await interaction.update({ content: `Please type a new ${detail}`, components: [], embeds: [] });
+        messageCollector.on('collect', async msg => {
+            if (detail === "title") {
+                await this.chooseTitle(msg.content);
+            } else if (detail === "description") {
+                await this.chooseDescription(msg.content);
+            }
+        });
+
+        messageCollector.on('end', async collected => {
+            if (collected.size === 1) {
+                await this.save();
+                await this.sendSureMessage();
+            }
+        });
     }
 
     static async checkIfUserHasQuestionOnDB(user: User) {
