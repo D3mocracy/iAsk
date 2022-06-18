@@ -278,7 +278,7 @@ namespace Embeds {
             title: changeDetailsEmbed.title,
             description: changeDetailsEmbed.description,
             color: "BLURPLE",
-            footer: { text: `${LanguageHandler.getMessageByLang('channelIDString', lang)} ${channelId}` }
+            footer: { text: `${changeDetailsEmbed.channelID} ${channelId}` }
         });
     }
 

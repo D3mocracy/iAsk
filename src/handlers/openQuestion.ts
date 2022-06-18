@@ -47,28 +47,29 @@ class OpenQuestionHandler {
 
     async isReachedLimit() {
         const qList = await DataBase.questionsCollection.find({ authorId: this.user.id, guildId: this.question.guildId, deleted: false }).toArray();
-        return qList.length === (await SetupHanlder.getConfigObject(this.question.guildId as string)).maxQuestions;
+        return qList.length >= (await SetupHanlder.getConfigObject(this.question.guildId as string)).maxQuestions;
     }
 
     async chooseGuild(interaction: SelectMenuInteraction) {
         this.question.guildId = interaction.values[0];
         const member = Utils.convertIDtoMemberFromGuild(this.bot, this.user.id, this.question.guildId);
-        if (member.isCommunicationDisabled()) {
+        if (await this.isReachedLimit()) {
+            this.question.deleted = true;
+            await interaction.update({ content: this.getMessageFromLangHandler('reachLimitQuestionsError'), components: [], embeds: [] });
+            return;
+
+        } else if (member.isCommunicationDisabled()) {
             await interaction.channel?.send(this.getMessageFromLangHandler('blockedFromThisGuild'));
             this.question.deleted = true;
             await interaction.deferUpdate();
             return;
+
+        } else {
+            await interaction.channel?.send(this.getMessageFromLangHandler("chooseTitleMessage"));
+            const guildName = (await this.bot.guilds.fetch((interaction as SelectMenuInteraction).values[0])).name;
+            const yourChoiceIs = this.getMessageFromLangHandler('yourChoiceIs');
+            await interaction.update({ content: `${yourChoiceIs} ${guildName}`, embeds: [], components: [] });
         }
-        if (await this.isReachedLimit()) {
-            await interaction.channel?.send(this.getMessageFromLangHandler('reachLimitQuestionsError'));
-            this.question.deleted = true;
-            await interaction.deferUpdate();
-            return;
-        }
-        await interaction.channel?.send(this.getMessageFromLangHandler("chooseTitleMessage"));
-        const guildName = (await this.bot.guilds.fetch((interaction as SelectMenuInteraction).values[0])).name;
-        const yourChoiceIs = this.getMessageFromLangHandler('yourChoiceIs');
-        await interaction.update({ content: `${yourChoiceIs} ${guildName}`, embeds: [], components: [] });
     }
 
     async sureNo() {
@@ -109,7 +110,7 @@ class OpenQuestionHandler {
         await interaction.update({ content: cancelQuestionMessage, embeds: [], components: [] });
     }
 
-    async createChannelOnGuild() {
+    async createChannelOnGuild(interaction: ButtonInteraction) {
         if (!this.question.guildId) throw new MissingGuildIdError();
         const guild = await this.bot.guilds.fetch(this.question.guildId);
         const setUp = (await SetupHanlder.getConfigObject(guild.id));
@@ -122,6 +123,7 @@ class OpenQuestionHandler {
         await this.channel.send(this.getMessageFromLangHandler('succsesMsg'));
         const rankHandler = await RankHandler.createHandler(Utils.convertIDtoMemberFromGuild(this.bot, this.user.id, guild.id));
         await (await guildChannel.send(`${rankHandler.getRank(Rank.NOTIFICATION)}`)).delete();
+        if (interaction) await interaction.update({ embeds: [], components: [] });
     }
 
     get questionObject() {

@@ -286,7 +286,7 @@ client.on('interactionCreate', async interaction => {
 
             } else if (!openQuestionHandler.questionObject.channelId) {
                 if (interaction.customId === "sure-yes") {
-                    await openQuestionHandler.createChannelOnGuild();
+                    await openQuestionHandler.createChannelOnGuild(interaction);
                 } else if (interaction.customId === "sure-no") {
                     await openQuestionHandler.sureNo();
                 } else if (interaction.customId === 'cancel') {
@@ -296,10 +296,10 @@ client.on('interactionCreate', async interaction => {
                 }
             }
             await openQuestionHandler.save();
-            await interaction.update({ embeds: [], components: [] });
         }
     } catch (error) {
         await ErrorHandler.sendErrorMessage(client, error as Error, interaction.user);
+        console.error(error);
     }
 });
 
@@ -326,6 +326,7 @@ client.on('channelDelete', async c => {
         await DataBase.questionsCollection.updateOne({ guildId: question.guildId, channelId: question.channelId }, { $set: { deleted: true } });
     } catch (error) {
         await ErrorHandler.sendErrorMessage(client, error as Error, (c as TextChannel).guild);
+        console.error(error);
     }
 })
 
