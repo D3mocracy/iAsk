@@ -253,6 +253,7 @@ namespace Embeds {
     export function lockedEmbedMessage(lang: string) {
         const locked = LanguageHandler.getMessageByLang('lockedEmbed', lang);
         const lockQuestion = new MessageEmbed({
+            thumbnail,
             title: locked.title,
             description: locked.description,
             color: "RED"
@@ -263,6 +264,7 @@ namespace Embeds {
     export function unlockQuestion(lang: string) {
         const unlocked = LanguageHandler.getMessageByLang('unlockedEmbed', lang);
         const msg = new MessageEmbed({
+            thumbnail,
             title: unlocked.title,
             description: unlocked.description,
             color: "GREEN"

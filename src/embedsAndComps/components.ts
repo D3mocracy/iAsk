@@ -78,27 +78,27 @@ namespace Components {
     }
 
     export function chooseToBeAnonymousButtons(lang: string) {
-        const yesButton = new MessageButton().setCustomId("anon-yes").setLabel(LanguageHandler.getMessageByLang('yesButton', lang)).setStyle("SUCCESS");
-        const noButton = new MessageButton().setCustomId("anon-no").setLabel(LanguageHandler.getMessageByLang('noButton', lang)).setStyle("DANGER");
+        const yesButton = new MessageButton().setCustomId("anon-yes").setLabel(`${LanguageHandler.getMessageByLang('yesButton', lang)} ✔️`).setStyle("SUCCESS");
+        const noButton = new MessageButton().setCustomId("anon-no").setLabel(`${LanguageHandler.getMessageByLang('noButton', lang)} ❌`).setStyle("DANGER");
         return new MessageActionRow().addComponents(yesButton, noButton);
     }
 
     export function chooseSureMessage(lang: string) {
-        const yesButton = new MessageButton().setCustomId("sure-yes").setLabel(LanguageHandler.getMessageByLang('yesButton', lang)).setStyle("SUCCESS");
-        const noButton = new MessageButton().setCustomId("sure-no").setLabel(LanguageHandler.getMessageByLang('noButton', lang)).setStyle("DANGER");
+        const yesButton = new MessageButton().setCustomId("sure-yes").setLabel(`${LanguageHandler.getMessageByLang('yesButton', lang)} ✔️`).setStyle("SUCCESS");
+        const noButton = new MessageButton().setCustomId("sure-no").setLabel(`${LanguageHandler.getMessageByLang('noButton', lang)} ❌`).setStyle("DANGER");
         return new MessageActionRow().addComponents(yesButton, noButton);
     }
 
     export function editButtons(lang: string) {
-        const t = new MessageButton().setCustomId("edit-title").setLabel(LanguageHandler.getMessageByLang('editTitleButton', lang)).setStyle("PRIMARY");
-        const d = new MessageButton().setCustomId("edit-description").setLabel(LanguageHandler.getMessageByLang('editDescriptionButton', lang)).setStyle("PRIMARY");
-        const c = new MessageButton().setCustomId("cancel").setLabel(LanguageHandler.getMessageByLang('cancelQuestionButton', lang)).setStyle("DANGER");
+        const t = new MessageButton().setCustomId("edit-title").setLabel(`${LanguageHandler.getMessageByLang('editTitleButton', lang)} ✍️`).setStyle("PRIMARY");
+        const d = new MessageButton().setCustomId("edit-description").setLabel(`${LanguageHandler.getMessageByLang('editDescriptionButton', lang)} ✍️`).setStyle("PRIMARY");
+        const c = new MessageButton().setCustomId("cancel").setLabel(`${LanguageHandler.getMessageByLang('cancelQuestionButton', lang)} 🛑`).setStyle("DANGER");
         return new MessageActionRow().addComponents(c, t, d);
     }
 
     export function chooseSureManagementMessage(lang: string) {
-        const yesButton = new MessageButton().setCustomId("mng-msg-yes").setLabel(LanguageHandler.getMessageByLang('yesButton', lang)).setStyle("SUCCESS");
-        const noButton = new MessageButton().setCustomId("mng-msg-no").setLabel(LanguageHandler.getMessageByLang('noButton', lang)).setStyle("DANGER");
+        const yesButton = new MessageButton().setCustomId("mng-msg-yes").setLabel(`${LanguageHandler.getMessageByLang('yesButton', lang)} ✔️`).setStyle("SUCCESS");
+        const noButton = new MessageButton().setCustomId("mng-msg-no").setLabel(`${LanguageHandler.getMessageByLang('noButton', lang)} ❌`).setStyle("DANGER");
         return new MessageActionRow().addComponents(yesButton, noButton);
     }
 

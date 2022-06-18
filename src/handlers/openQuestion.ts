@@ -104,7 +104,7 @@ class OpenQuestionHandler {
     }
 
     async deleteQuestion(interaction: ButtonInteraction) {
-        const cancelQuestionMessage = LanguageHandler.getMessageByLang('cancelQuestionMessage', this.lang)
+        const cancelQuestionMessage = LanguageHandler.getMessageByLang('cancelQuestionMessage', this.question.lang)
         this.question.deleted = true;
         await interaction.update({ content: cancelQuestionMessage, embeds: [], components: [] });
     }

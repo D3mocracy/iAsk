@@ -174,129 +174,132 @@ client.on("messageCreate", async message => {
 });
 
 client.on('interactionCreate', async interaction => {
+    try {
+        if (interaction.isSelectMenu()) {
+            if (interaction.customId === "choose-guild-open-question") {
+                const openQuestionHandler = await OpenQuestionHandler.createHandler(client, interaction.user, interaction.channel);
 
-    if (interaction.isSelectMenu()) {
-        if (interaction.customId === "choose-guild-open-question") {
-            const openQuestionHandler = await OpenQuestionHandler.createHandler(client, interaction.user, interaction.channel);
+                await openQuestionHandler.chooseGuild(interaction);
+                await openQuestionHandler.save();
 
-            await openQuestionHandler.chooseGuild(interaction);
-            await openQuestionHandler.save();
+            } else if (interaction.customId === "choose-guild-manage-member") {
+                const memberId = await ManageMemberHanlder.getMemberIdFromDBByManagerId(interaction.user);
+                const target: User = Utils.convertIDtoUser(client, memberId) as User;
+                const manageMemberHanlder = await ManageMemberHanlder.createHandler(client, interaction.user, target);
+                if (target.bot) {
+                    interaction.update({ content: `Maybe I will try to !manage human ${interaction.user.username} how would that feel?`, embeds: [], components: [] });
+                    return;
+                }
 
-        } else if (interaction.customId === "choose-guild-manage-member") {
-            const memberId = await ManageMemberHanlder.getMemberIdFromDBByManagerId(interaction.user);
-            const target: User = Utils.convertIDtoUser(client, memberId) as User;
-            const manageMemberHanlder = await ManageMemberHanlder.createHandler(client, interaction.user, target);
-            if (target.bot) {
-                interaction.update({ content: `Maybe I will try to !manage human ${interaction.user.username} how would that feel?`, embeds: [], components: [] });
+                await manageMemberHanlder.chooseGuild(interaction);
+                await manageMemberHanlder.save();
+
+
+            } else if (interaction.customId === "channel-mng") {
+                const footer: string = (interaction as SelectMenuInteraction).message.embeds[0].footer?.text as string;
+                const managedChannelId: string = `${footer.match(/\d+/g)}`;
+                const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, managedChannelId, interaction.channel, interaction.user);
+                if (!manageQuestionHandler) return;
+                const options: any = {
+                    "question-anon-msg": async () => manageQuestionHandler.sendAnonMessage(),
+                    "question-del": async () => manageQuestionHandler.deleteQuestion(),
+                    "question-lock": async () => manageQuestionHandler.lockQuestion(),
+                    "question-unlock": async () => manageQuestionHandler.unlockQuestion(),
+                    "question-reveal": async () => manageQuestionHandler.revealUserTag(),
+                    "question-log": async () => manageQuestionHandler.logQuestion(),
+                    "question-details-change": async () => manageQuestionHandler.chooseChangeDetail(),
+                }
+                await manageQuestionHandler.log(interaction.values[0]);
+                await options[interaction.values[0]]();
+                await manageQuestionHandler.save();
+                await manageQuestionHandler.updateEmbedAndCompManager(interaction);
+
+            } else if (interaction.customId === "change-dtl") {
+                const footer: string = (interaction as SelectMenuInteraction).message.embeds[0].footer?.text as string;
+                const managedChannelId: string = `${footer.match(/\d+/g)}`;
+                const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, managedChannelId, interaction.channel, interaction.user);
+                if (!manageQuestionHandler) return;
+                await manageQuestionHandler.changeDetail(interaction);
+                await manageQuestionHandler.save();
+
+
+            } else if (interaction.customId === "mbr-mng") {
+                const memberId = await ManageMemberHanlder.getMemberIdFromDBByManagerId(interaction.user);
+                const manageMemberHanlder = await ManageMemberHanlder.createHandler(client, interaction.user, memberId);
+
+                const options: any = {
+                    "mbr-kick": async () => manageMemberHanlder.kickMember(interaction),
+                    "mbr-ban": async () => manageMemberHanlder.banMember(interaction),
+                    "mbr-block": async () => manageMemberHanlder.updateToBlockMenu(interaction),
+                    "mbr-note": async () => manageMemberHanlder.updateToNoteMenu(interaction),
+                    "mbr-management-msg": async () => manageMemberHanlder.insertDetailsToManagementMessageHandler(interaction),
+                }
+
+                await options[interaction.values[0]]();
+                await manageMemberHanlder.save();
+
+            } else if (interaction.customId === "block-mbr") {
+                const memberId = await ManageMemberHanlder.getMemberIdFromDBByManagerId(interaction.user);
+                const manageMemberHanlder = await ManageMemberHanlder.createHandler(client, interaction.user, memberId);
+                await manageMemberHanlder.blockMember(interaction);
+
+            } else if (interaction.customId === "note-mbr") {
+                const noteManageHanlder = await NoteManageHanlder.createHanlder(interaction);
+
+                const options: any = {
+                    "note-add": async () => {
+                        const footer: string = (interaction as SelectMenuInteraction).message.embeds[0].footer?.text as string;
+                        const guildId: string = `${footer.match(/\d+/g)}`;
+                        const newNoteHandler = await NewNoteHandler.createHandler(interaction.user, interaction);
+                        await newNoteHandler.addNote()
+                        await newNoteHandler.save();
+                    },
+                    "note-remove": async () => { noteManageHanlder.updateToRemoveNotesMessage() },
+                    "note-reset": async () => { noteManageHanlder.softDeleteAllNotes() },
+                    "note-show": async () => { noteManageHanlder.sendShowAllNotesMessage() }
+                }
+                await options[interaction.values[0]]();
+
+            } else if (interaction.customId === "remove-notes") {
+                const noteManageHanlder = await NoteManageHanlder.createHanlder(interaction);
+                noteManageHanlder.removeNote();
+
+            }
+
+        } else if (interaction.isButton() && interaction.channel?.type === "DM") {
+            if (interaction.customId === "mng-msg-yes" || interaction.customId === "mng-msg-no") {
+                const managementMessageHandler = await ManagementMessageHanlder.createHandler(interaction.user, client);
+                await managementMessageHandler.manageMessageDealer(interaction);
+
+                await managementMessageHandler.save();
                 return;
             }
-
-            await manageMemberHanlder.chooseGuild(interaction);
-            await manageMemberHanlder.save();
-
-
-        } else if (interaction.customId === "channel-mng") {
-            const footer: string = (interaction as SelectMenuInteraction).message.embeds[0].footer?.text as string;
-            const managedChannelId: string = `${footer.match(/\d+/g)}`;
-            const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, managedChannelId, interaction.channel, interaction.user);
-            if (!manageQuestionHandler) return;
-            const options: any = {
-                "question-anon-msg": async () => manageQuestionHandler.sendAnonMessage(),
-                "question-del": async () => manageQuestionHandler.deleteQuestion(),
-                "question-lock": async () => manageQuestionHandler.lockQuestion(),
-                "question-unlock": async () => manageQuestionHandler.unlockQuestion(),
-                "question-reveal": async () => manageQuestionHandler.revealUserTag(),
-                "question-log": async () => manageQuestionHandler.logQuestion(),
-                "question-details-change": async () => manageQuestionHandler.chooseChangeDetail(),
-            }
-            await manageQuestionHandler.log(interaction.values[0]);
-            await options[interaction.values[0]]();
-            await manageQuestionHandler.save();
-            await manageQuestionHandler.updateEmbedAndCompManager(interaction);
-
-        } else if (interaction.customId === "change-dtl") {
-            const footer: string = (interaction as SelectMenuInteraction).message.embeds[0].footer?.text as string;
-            const managedChannelId: string = `${footer.match(/\d+/g)}`;
-            const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, managedChannelId, interaction.channel, interaction.user);
-            if (!manageQuestionHandler) return;
-            await manageQuestionHandler.changeDetail(interaction);
-            await manageQuestionHandler.save();
-
-
-        } else if (interaction.customId === "mbr-mng") {
-            const memberId = await ManageMemberHanlder.getMemberIdFromDBByManagerId(interaction.user);
-            const manageMemberHanlder = await ManageMemberHanlder.createHandler(client, interaction.user, memberId);
-
-            const options: any = {
-                "mbr-kick": async () => manageMemberHanlder.kickMember(interaction),
-                "mbr-ban": async () => manageMemberHanlder.banMember(interaction),
-                "mbr-block": async () => manageMemberHanlder.updateToBlockMenu(interaction),
-                "mbr-note": async () => manageMemberHanlder.updateToNoteMenu(interaction),
-                "mbr-management-msg": async () => manageMemberHanlder.insertDetailsToManagementMessageHandler(interaction),
-            }
-
-            await options[interaction.values[0]]();
-            await manageMemberHanlder.save();
-
-        } else if (interaction.customId === "block-mbr") {
-            const memberId = await ManageMemberHanlder.getMemberIdFromDBByManagerId(interaction.user);
-            const manageMemberHanlder = await ManageMemberHanlder.createHandler(client, interaction.user, memberId);
-            await manageMemberHanlder.blockMember(interaction);
-
-        } else if (interaction.customId === "note-mbr") {
-            const noteManageHanlder = await NoteManageHanlder.createHanlder(interaction);
-
-            const options: any = {
-                "note-add": async () => {
-                    const footer: string = (interaction as SelectMenuInteraction).message.embeds[0].footer?.text as string;
-                    const guildId: string = `${footer.match(/\d+/g)}`;
-                    const newNoteHandler = await NewNoteHandler.createHandler(interaction.user, interaction);
-                    await newNoteHandler.addNote()
-                    await newNoteHandler.save();
-                },
-                "note-remove": async () => { noteManageHanlder.updateToRemoveNotesMessage() },
-                "note-reset": async () => { noteManageHanlder.softDeleteAllNotes() },
-                "note-show": async () => { noteManageHanlder.sendShowAllNotesMessage() }
-            }
-            await options[interaction.values[0]]();
-
-        } else if (interaction.customId === "remove-notes") {
-            const noteManageHanlder = await NoteManageHanlder.createHanlder(interaction);
-            noteManageHanlder.removeNote();
-
-        }
-
-    } else if (interaction.isButton() && interaction.channel?.type === "DM") {
-        if (interaction.customId === "mng-msg-yes" || interaction.customId === "mng-msg-no") {
-            const managementMessageHandler = await ManagementMessageHanlder.createHandler(interaction.user, client);
-            await managementMessageHandler.manageMessageDealer(interaction);
-
-            await managementMessageHandler.save();
-            return;
-        }
-        const openQuestionHandler = await OpenQuestionHandler.createHandler(client, interaction.user, interaction.channel);
-        const args = interaction.customId.split("-");
-        if (args[0] === 'edit') {
-            await openQuestionHandler.createMessageCollector(interaction, args[1]);
-            await openQuestionHandler.save();
-            return;
-        }
-        if (openQuestionHandler.questionObject.anonymous === undefined) {
-            await openQuestionHandler.chooseAnonymous(interaction.customId === "anon-yes");
-
-        } else if (!openQuestionHandler.questionObject.channelId) {
-            if (interaction.customId === "sure-yes") {
-                await openQuestionHandler.createChannelOnGuild();
-            } else if (interaction.customId === "sure-no") {
-                await openQuestionHandler.sureNo();
-            } else if (interaction.customId === 'cancel') {
-                await openQuestionHandler.deleteQuestion(interaction);
+            const openQuestionHandler = await OpenQuestionHandler.createHandler(client, interaction.user, interaction.channel);
+            const args = interaction.customId.split("-");
+            if (args[0] === 'edit') {
+                await openQuestionHandler.createMessageCollector(interaction, args[1]);
                 await openQuestionHandler.save();
                 return;
             }
+            if (openQuestionHandler.questionObject.anonymous === undefined) {
+                await openQuestionHandler.chooseAnonymous(interaction.customId === "anon-yes");
+
+            } else if (!openQuestionHandler.questionObject.channelId) {
+                if (interaction.customId === "sure-yes") {
+                    await openQuestionHandler.createChannelOnGuild();
+                } else if (interaction.customId === "sure-no") {
+                    await openQuestionHandler.sureNo();
+                } else if (interaction.customId === 'cancel') {
+                    await openQuestionHandler.deleteQuestion(interaction);
+                    await openQuestionHandler.save();
+                    return;
+                }
+            }
+            await openQuestionHandler.save();
+            await interaction.update({ embeds: [], components: [] });
         }
-        await openQuestionHandler.save();
-        await interaction.update({ embeds: [], components: [] });
+    } catch (error) {
+        await ErrorHandler.sendErrorMessage(client, error as Error, interaction.user);
     }
 });
 
