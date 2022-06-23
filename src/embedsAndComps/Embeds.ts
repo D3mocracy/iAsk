@@ -301,6 +301,26 @@ namespace Embeds {
         })
     }
 
+    export function sureDeleteQuestion(lang: string) {
+        const sureDeleteEmbed = LanguageHandler.getMessageByLang('sureDeleteQuestion', lang);
+        return new MessageEmbed({
+            title: sureDeleteEmbed.title,
+            description: sureDeleteEmbed.description,
+            footer: { text: sureDeleteEmbed.footer },
+            color: 'RED'
+        })
+    };
+
+    export function sureChangeDetail(lang: string) {
+        const sureDeleteEmbed = LanguageHandler.getMessageByLang('sureChangeDetail', lang);
+        return new MessageEmbed({
+            title: sureDeleteEmbed.title,
+            description: sureDeleteEmbed.description,
+            footer: { text: sureDeleteEmbed.footer },
+            color: 'DARK_RED'
+        })
+    };
+
 
 
 }

@@ -59,8 +59,9 @@ class ManageMemberHanlder {
     async chooseGuild(interaction: SelectMenuInteraction) {
         const guildId = interaction.values[0];
         const targetRankHandler = await RankHandler.createHandler(Utils.convertIDtoMemberFromGuild(this.bot, this.action.memberId, guildId));
+        const managerRankHandler = await RankHandler.createHandler(Utils.convertIDtoMemberFromGuild(this.bot, this.action.managerId, guildId));
         const manager = Utils.convertIDtoMemberFromGuild(this.bot, this.action.managerId, guildId);
-        if (targetRankHandler.hasRank(Rank.MANAGER) && (!manager.permissions.has('ADMINISTRATOR'))) {
+        if ((targetRankHandler.hasRank(Rank.MANAGER) && (!manager.permissions.has('ADMINISTRATOR'))) || managerRankHandler.hasRank(Rank.SUPERVISOR)) {
             await interaction.update({ content: LanguageHandler.getMessageByLang('dontHavePermissions', this.action.lang), embeds: [], components: [] })
             return;
         }

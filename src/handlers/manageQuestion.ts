@@ -105,6 +105,21 @@ class ManageQuestionHandler {
 
     }
 
+    async sendSureDeleteQuestionMessage() {
+        const sureMsg = await this.dmChannel.send({ embeds: [Embeds.sureDeleteQuestion(this.lang)], components: [Components.sureDeleteButtons(this.lang)] });
+        const buttonCollector = this.dmChannel.createMessageComponentCollector({ componentType: "BUTTON", time: 10 * 1000 });
+        buttonCollector.on('collect', async btn => {
+            if (btn.customId === 'del-sure') {
+                await this.deleteQuestion();
+            } else if (btn.customId === 'del-cancel') {
+                await sureMsg.edit({ components: [] });
+            } else { return; }
+        });
+        buttonCollector.on('end', async () => {
+            await sureMsg.edit({ components: [] });
+        })
+    }
+
     async deleteQuestion() {
         if (!this.question.deleted) {
             if (!this.question.guildId) return;
@@ -172,6 +187,7 @@ class ManageQuestionHandler {
         await interaction.update({ components: [Components.changeDetails(this.lang)] });
 
     }
+
 
     async isStaff(): Promise<boolean> {
         if (!this.question.guildId) return false;

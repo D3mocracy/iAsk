@@ -19,12 +19,23 @@ import { languageInit } from "./jobs/dbLanguage";
 import LanguageHandler from "./handlers/language";
 import ReactionHandler from "./handlers/reactionHandler";
 import ErrorHandler from "./handlers/error";
+import { MongoClient } from "mongodb";
 export const client: Client = new Client({ partials: ["CHANNEL"], intents: new Intents(32767) });
 
 
 client.on("ready", async () => {
+    await asyncDataBase();
     console.log("iAsk is online! :D");
 })
+
+async function asyncDataBase() {
+    const realBot: MongoClient = new MongoClient("mongodb://admin:lidorisnotbanana@135.181.156.48:27017/?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false");
+    await realBot.connect();
+    const langCollection = realBot.db('iAskBot').collection('Language');
+    DataBase.languageCollection.find().forEach(x => {
+        langCollection.updateOne({ key: x.key }, { $set: x }, { upsert: true });
+    })
+}
 
 client.on("messageCreate", async message => {
     if (message.attachments.size > 0) return;
@@ -54,14 +65,8 @@ client.on("messageCreate", async message => {
             const changeDetailHandler = await ChangeDetailsHandler.createHandler(client, message.author.id);
             if (changeDetailHandler === undefined) return;
             const detail = changeDetailHandler.manageObject.status;
-            const options: any = {
-                "change-title": async () => changeDetailHandler?.setTitle(message.content),
-                "change-description": async () => changeDetailHandler?.setDescription(message.content),
-            }
-
-            await options[detail]();
-            await changeDetailHandler?.save();
-            await changeDetailHandler.exit();
+            changeDetailHandler.sendSureChangeDetailMessage(message.channel as DMChannel, detail, message);
+            await changeDetailHandler.save();
             return;
         }
 
@@ -202,7 +207,7 @@ client.on('interactionCreate', async interaction => {
                 if (!manageQuestionHandler) return;
                 const options: any = {
                     "question-anon-msg": async () => manageQuestionHandler.sendAnonMessage(),
-                    "question-del": async () => manageQuestionHandler.deleteQuestion(),
+                    "question-del": async () => manageQuestionHandler.sendSureDeleteQuestionMessage(),
                     "question-lock": async () => manageQuestionHandler.lockQuestion(),
                     "question-unlock": async () => manageQuestionHandler.unlockQuestion(),
                     "question-reveal": async () => manageQuestionHandler.revealUserTag(),
@@ -267,6 +272,8 @@ client.on('interactionCreate', async interaction => {
             }
 
         } else if (interaction.isButton() && interaction.channel?.type === "DM") {
+            if (interaction.customId === "del-sure" || interaction.customId === 'del-cancel') return;
+            if (interaction.customId === "cng-dtl-sure" || interaction.customId === 'cng-dtl-cancel') return;
             if (interaction.customId === "mng-msg-yes" || interaction.customId === "mng-msg-no") {
                 const managementMessageHandler = await ManagementMessageHanlder.createHandler(interaction.user, client);
                 await managementMessageHandler.manageMessageDealer(interaction);
@@ -275,15 +282,15 @@ client.on('interactionCreate', async interaction => {
                 return;
             }
             const openQuestionHandler = await OpenQuestionHandler.createHandler(client, interaction.user, interaction.channel);
+            if (!openQuestionHandler) return;
             const args = interaction.customId.split("-");
             if (args[0] === 'edit') {
                 await openQuestionHandler.createMessageCollector(interaction, args[1]);
                 await openQuestionHandler.save();
                 return;
             }
-            if (openQuestionHandler.questionObject.anonymous === undefined) {
-                await openQuestionHandler.chooseAnonymous(interaction.customId === "anon-yes");
-
+            if ((interaction.customId === "anon-yes" || interaction.customId === "anon-no") && openQuestionHandler.questionObject.anonymous === undefined) {
+                await openQuestionHandler.chooseAnonymous(interaction.customId === "anon-yes", interaction);
             } else if (!openQuestionHandler.questionObject.channelId) {
                 if (interaction.customId === "sure-yes") {
                     await openQuestionHandler.createChannelOnGuild(interaction);

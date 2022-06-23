@@ -117,12 +117,27 @@ namespace Components {
         return detailsOptionList;
     }
 
+    export function sureDeleteButtons(lang: string) {
+        const sureDeleteComp = LanguageHandler.getMessageByLang('sureDeleteButton', lang);
+        const sureButton = new MessageButton().setCustomId('del-sure').setLabel(`${sureDeleteComp.sure}`).setStyle('SUCCESS');
+        const cancelButton = new MessageButton().setCustomId('del-cancel').setLabel(`${sureDeleteComp.cancel}`).setStyle('DANGER');
+        return new MessageActionRow().addComponents(cancelButton, sureButton);
+    };
+
+    export function sureChangeDetailButtons(lang: string) {
+        const sureChangeDetail = LanguageHandler.getMessageByLang('sureDeleteButton', lang);
+        const sureButton = new MessageButton().setCustomId('cng-dtl-sure').setLabel(`${sureChangeDetail.sure}`).setStyle('SUCCESS');
+        const cancelButton = new MessageButton().setCustomId('cng-dtl-cancel').setLabel(`${sureChangeDetail.cancel}`).setStyle('DANGER');
+        return new MessageActionRow().addComponents(cancelButton, sureButton);
+    }
+
 
     export function changeDetails(lang: string) {
         const changeDetailsMenu = new MessageSelectMenu().setCustomId('change-dtl').setPlaceholder(LanguageHandler.getMessageByLang('chooseOption', lang));
         changeDetailsMenu.addOptions(detailOption(lang))
         return new MessageActionRow().addComponents(changeDetailsMenu);
     }
+
     function memberOptions(lang: string) {
         const option = LanguageHandler.getMessageByLang('memberManageOptions', lang);
         const memberOptionList: (MessageSelectOptionData & { rank: Rank[] })[] = [

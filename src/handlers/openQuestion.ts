@@ -99,8 +99,9 @@ class OpenQuestionHandler {
         })
     }
 
-    async chooseAnonymous(anonymous: boolean) {
+    async chooseAnonymous(anonymous: boolean, interaction: ButtonInteraction) {
         this.question.anonymous = anonymous;
+        await interaction.update({ embeds: [], components: [] })
         await this.sendSureMessage();
     }
 
@@ -116,6 +117,7 @@ class OpenQuestionHandler {
         const setUp = (await SetupHanlder.getConfigObject(guild.id));
         const questionCatagory = await this.bot.channels.fetch((await SetupHanlder.getConfigObject(this.question.guildId)).questionCatagory) as CategoryChannelResolvable;
         const guildChannel = await guild.channels.create(this.question.title || "Error 404", { type: "GUILD_TEXT", parent: questionCatagory });
+        if (interaction) await interaction.update({ embeds: [], components: [] });
         await guildChannel.setRateLimitPerUser(setUp.slowModeSecond);
         this.question.channelId = guildChannel.id;
         await this.channel.send({ embeds: await this.getDefaultQuestionMessage() });
@@ -123,7 +125,7 @@ class OpenQuestionHandler {
         await this.channel.send(this.getMessageFromLangHandler('succsesMsg'));
         const rankHandler = await RankHandler.createHandler(Utils.convertIDtoMemberFromGuild(this.bot, this.user.id, guild.id));
         await (await guildChannel.send(`${rankHandler.getRank(Rank.NOTIFICATION)}`)).delete();
-        if (interaction) await interaction.update({ embeds: [], components: [] });
+
     }
 
     get questionObject() {
