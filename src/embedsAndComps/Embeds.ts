@@ -5,7 +5,7 @@ import LanguageHandler from "../handlers/language";
 import Utils from "../utils";
 
 namespace Embeds {
-    const author = { name: "iAsk Bot - D3mocracy#8662", iconURL: "https://i.imgur.com/I7EoZkF.png", url: 'https://discord.com/users/243380679763558400' };
+    const author = { name: "iAsk Bot - D3mocracy#8662", iconURL: "https://i.imgur.com/Yr6z4LR.png", url: 'https://discord.com/users/243380679763558400' };
     const thumbnail = { url: 'https://i.imgur.com/Yr6z4LR.png' };
 
     export function chooseGuildOpenQuestion(lang: string) {

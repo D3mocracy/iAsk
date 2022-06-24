@@ -72,7 +72,8 @@ class OpenQuestionHandler {
         }
     }
 
-    async sureNo() {
+    async sureNo(interaction: ButtonInteraction) {
+        await interaction.update({ components: [] });
         await this.channel.send({ embeds: [Embeds.sureNo(this.question.lang)], components: [Components.editButtons(this.question.lang)] });
     }
 

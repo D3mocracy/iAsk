@@ -295,7 +295,7 @@ client.on('interactionCreate', async interaction => {
                 if (interaction.customId === "sure-yes") {
                     await openQuestionHandler.createChannelOnGuild(interaction);
                 } else if (interaction.customId === "sure-no") {
-                    await openQuestionHandler.sureNo();
+                    await openQuestionHandler.sureNo(interaction);
                 } else if (interaction.customId === 'cancel') {
                     await openQuestionHandler.deleteQuestion(interaction);
                     await openQuestionHandler.save();
