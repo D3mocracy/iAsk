@@ -37,6 +37,7 @@ namespace Components {
 
     const setupOptionList: MessageSelectOptionData[] = [
         { label: "Question Catagory", description: "Change the question catagory ID", value: "question-catagory" },
+        { label: "Support Catagory", description: "Change the support catagory ID", value: "support-catagory" },
         { label: "Tools Log", description: "Change the tools log channel ID", value: "tool-log-channel-id" },
         { label: "Question Log", description: "Change the question log channel ID", value: "question-log-channel-id" },
         { label: "Max Questions", description: "Change the max question per member on your guild", value: "max-questions-per-member" },
@@ -77,28 +78,33 @@ namespace Components {
         return new MessageActionRow().addComponents(manageQuestionMenu);
     }
 
+    export async function supportTicket() {
+        const close = new MessageButton().setCustomId('close-ticket').setLabel('Close').setStyle('DANGER').setEmoji('🔐');
+        return new MessageActionRow().addComponents(close);
+    }
+
     export function chooseToBeAnonymousButtons(lang: string) {
-        const yesButton = new MessageButton().setCustomId("anon-yes").setLabel(`${LanguageHandler.getMessageByLang('yesButton', lang)} ✔️`).setStyle("SUCCESS");
-        const noButton = new MessageButton().setCustomId("anon-no").setLabel(`${LanguageHandler.getMessageByLang('noButton', lang)} ❌`).setStyle("DANGER");
+        const yesButton = new MessageButton().setCustomId("anon-yes").setLabel(`${LanguageHandler.getMessageByLang('yesButton', lang)}`).setStyle("SUCCESS").setEmoji('✔️');
+        const noButton = new MessageButton().setCustomId("anon-no").setLabel(`${LanguageHandler.getMessageByLang('noButton', lang)}`).setStyle("DANGER").setEmoji('❌');
         return new MessageActionRow().addComponents(yesButton, noButton);
     }
 
     export function chooseSureMessage(lang: string) {
-        const yesButton = new MessageButton().setCustomId("sure-yes").setLabel(`${LanguageHandler.getMessageByLang('yesButton', lang)} ✔️`).setStyle("SUCCESS");
-        const noButton = new MessageButton().setCustomId("sure-no").setLabel(`${LanguageHandler.getMessageByLang('noButton', lang)} ❌`).setStyle("DANGER");
+        const yesButton = new MessageButton().setCustomId("sure-yes").setLabel(`${LanguageHandler.getMessageByLang('yesButton', lang)}`).setStyle("SUCCESS").setEmoji('✔️');
+        const noButton = new MessageButton().setCustomId("sure-no").setLabel(`${LanguageHandler.getMessageByLang('noButton', lang)}`).setStyle("DANGER").setEmoji('❌');
         return new MessageActionRow().addComponents(yesButton, noButton);
     }
 
     export function editButtons(lang: string) {
-        const t = new MessageButton().setCustomId("edit-title").setLabel(`${LanguageHandler.getMessageByLang('editTitleButton', lang)} ✍️`).setStyle("PRIMARY");
-        const d = new MessageButton().setCustomId("edit-description").setLabel(`${LanguageHandler.getMessageByLang('editDescriptionButton', lang)} ✍️`).setStyle("PRIMARY");
-        const c = new MessageButton().setCustomId("cancel").setLabel(`${LanguageHandler.getMessageByLang('cancelQuestionButton', lang)} 🛑`).setStyle("DANGER");
+        const t = new MessageButton().setCustomId("edit-title").setLabel(`${LanguageHandler.getMessageByLang('editTitleButton', lang)}`).setStyle("PRIMARY").setEmoji('✍️');
+        const d = new MessageButton().setCustomId("edit-description").setLabel(`${LanguageHandler.getMessageByLang('editDescriptionButton', lang)}`).setStyle("PRIMARY").setEmoji('✍️');
+        const c = new MessageButton().setCustomId("cancel").setLabel(`${LanguageHandler.getMessageByLang('cancelQuestionButton', lang)}`).setStyle("DANGER").setEmoji('🛑');
         return new MessageActionRow().addComponents(c, t, d);
     }
 
     export function chooseSureManagementMessage(lang: string) {
-        const yesButton = new MessageButton().setCustomId("mng-msg-yes").setLabel(`${LanguageHandler.getMessageByLang('yesButton', lang)} ✔️`).setStyle("SUCCESS");
-        const noButton = new MessageButton().setCustomId("mng-msg-no").setLabel(`${LanguageHandler.getMessageByLang('noButton', lang)} ❌`).setStyle("DANGER");
+        const yesButton = new MessageButton().setCustomId("mng-msg-yes").setLabel(`${LanguageHandler.getMessageByLang('yesButton', lang)}`).setStyle("SUCCESS").setEmoji('✔️');
+        const noButton = new MessageButton().setCustomId("mng-msg-no").setLabel(`${LanguageHandler.getMessageByLang('noButton', lang)}`).setStyle("DANGER").setEmoji('❌');
         return new MessageActionRow().addComponents(yesButton, noButton);
     }
 
@@ -129,6 +135,11 @@ namespace Components {
         const sureButton = new MessageButton().setCustomId('cng-dtl-sure').setLabel(`${sureChangeDetail.sure}`).setStyle('SUCCESS');
         const cancelButton = new MessageButton().setCustomId('cng-dtl-cancel').setLabel(`${sureChangeDetail.cancel}`).setStyle('DANGER');
         return new MessageActionRow().addComponents(cancelButton, sureButton);
+    }
+
+    export function supportOpenTicketButton(lang: string) {
+        const btn = new MessageButton().setCustomId('open-ticket-support').setLabel(LanguageHandler.getMessageByLang('supportOpenTicketButton', lang)).setStyle('PRIMARY').setEmoji('✉️');
+        return new MessageActionRow().addComponents(btn);
     }
 
 

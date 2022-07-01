@@ -17,6 +17,7 @@ class DataBase {
         DataBase.guildsCollection = DataBase.client.db("iAskBot").collection("Guilds");
         DataBase.configCollection = DataBase.client.db("iAskBot").collection("Config");
         DataBase.languageCollection = DataBase.client.db("iAskBot").collection("Language");
+        DataBase.supportCollection = DataBase.client.db("iAskBot").collection("Support");
     }
 
     static questionsCollection: Collection = {} as any;
@@ -27,6 +28,7 @@ class DataBase {
     static guildsCollection: Collection = {} as any;
     static configCollection: Collection = {} as any;
     static languageCollection: Collection = {} as any;
+    static supportCollection: Collection = {} as any;
 }
 
 export default DataBase;

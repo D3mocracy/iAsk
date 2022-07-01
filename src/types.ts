@@ -1,4 +1,4 @@
-import { Guild, User } from "discord.js"
+import { Guild, GuildMember, TextChannel, User } from "discord.js"
 import { ObjectId } from "mongodb"
 
 export type Question = {
@@ -54,6 +54,7 @@ export type SetupConfig = {
     language: string,
     done: boolean,
     questionCatagory: string,
+    supportCatagory: string,
     manageToolLogChannelID: string,
     questionLogChannelID: string,
     notificationRoleID: string,
@@ -63,4 +64,11 @@ export type SetupConfig = {
     managerRoleID: string,
     maxQuestions: number,
     slowModeSecond: number,
+}
+
+export type SupportTicket = {
+    guildId: string,
+    channelId: string,
+    deleted: boolean,
+    memberId: string,
 }

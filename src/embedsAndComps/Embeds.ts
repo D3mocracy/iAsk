@@ -1,4 +1,4 @@
-import { Client, Guild, MessageEmbed, User } from "discord.js";
+import { Client, Guild, GuildMember, MessageEmbed, User } from "discord.js";
 import { client } from "..";
 import Config from "../config";
 import LanguageHandler from "../handlers/language";
@@ -9,7 +9,7 @@ namespace Embeds {
     const thumbnail = { url: 'https://i.imgur.com/Yr6z4LR.png' };
 
     export function chooseGuildOpenQuestion(lang: string) {
-        const embedDB = LanguageHandler.getMessageByLang("chooseGuildEmbedMessageTitleOpenQuestion", lang)
+        const embedDB = LanguageHandler.getMessageByLang("chooseGuildEmbedMessageTitleOpenQuestion", lang);
         const msg = new MessageEmbed({
             author, thumbnail,
             title: embedDB.title,
@@ -22,14 +22,36 @@ namespace Embeds {
 
     export const chooseGuildManageMember = new MessageEmbed({
         title: "Choose a guild",
-        color: "DARK_VIVID_PINK"
+        color: "RANDOM"
     });
 
-    export function sureNo(lang: string) {
+    export function supportOpenTicketMessage(lang: string) {
+        const supportOpenTicketMessage = LanguageHandler.getMessageByLang("supportOpenTicketMessage", lang);
         return new MessageEmbed({
-            title: LanguageHandler.getMessageByLang('sureNo', lang).title,
-            description: LanguageHandler.getMessageByLang('sureNo', lang).description,
-            footer: { text: LanguageHandler.getMessageByLang('sureNo', lang).footer },
+            thumbnail,
+            title: supportOpenTicketMessage.title,
+            description: supportOpenTicketMessage.description,
+            footer: { text: supportOpenTicketMessage.footer },
+            color: 'AQUA'
+        });
+    }
+
+    export function supportTicketMainMessage(ticketNumber: number, member: GuildMember) {
+        return new MessageEmbed({
+            thumbnail,
+            title: `Support Ticket #${ticketNumber}`,
+            description: `Creator: ${member.user.tag} \n Got your answer? click on the 'Close' Button`,
+            footer: { text: `Do Not Mention Staff Member On Ticket Channel` },
+            color: 'AQUA'
+        })
+    }
+
+    export function sureNo(lang: string) {
+        const sureNoDB = LanguageHandler.getMessageByLang('sureNo', lang);
+        return new MessageEmbed({
+            title: sureNoDB.title,
+            description: sureNoDB.description,
+            footer: { text: sureNoDB.footer },
             color: "RED"
         })
     }

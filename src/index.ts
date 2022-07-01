@@ -20,6 +20,8 @@ import LanguageHandler from "./handlers/language";
 import ReactionHandler from "./handlers/reactionHandler";
 import ErrorHandler from "./handlers/error";
 import { MongoClient } from "mongodb";
+import Components from "./embedsAndComps/components";
+import SupportTicketHandler from "./handlers/support";
 export const client: Client = new Client({ partials: ["CHANNEL"], intents: new Intents(32767) });
 
 
@@ -141,6 +143,11 @@ client.on("messageCreate", async message => {
             const lang = (await DataBase.guildsCollection.findOne({ guildId: message.guildId }))?.language || "en";
             await (await message.channel.send({ embeds: [Embeds.notificationMessage(lang)] })).react('🔔');
             await message.delete();
+        }
+        if (message.content === "!support") {
+            if (!message.member?.permissions.has('ADMINISTRATOR')) return;
+            const lang = (await DataBase.guildsCollection.findOne({ guildId: message.guildId }))?.language || "en";
+            await message.channel.send({ embeds: [Embeds.supportOpenTicketMessage(lang)], components: [Components.supportOpenTicketButton(lang)] });
         }
         const args = message.content.split(" ");
         if (args[0] === "!setup" && message.member?.permissions.has('ADMINISTRATOR')) {
@@ -271,9 +278,11 @@ client.on('interactionCreate', async interaction => {
 
             }
 
+
         } else if (interaction.isButton() && interaction.channel?.type === "DM") {
             if (interaction.customId === "del-sure" || interaction.customId === 'del-cancel') return;
             if (interaction.customId === "cng-dtl-sure" || interaction.customId === 'cng-dtl-cancel') return;
+
             if (interaction.customId === "mng-msg-yes" || interaction.customId === "mng-msg-no") {
                 const managementMessageHandler = await ManagementMessageHanlder.createHandler(interaction.user, client);
                 await managementMessageHandler.manageMessageDealer(interaction);
@@ -303,6 +312,17 @@ client.on('interactionCreate', async interaction => {
                 }
             }
             await openQuestionHandler.save();
+        } else if (interaction.isButton() && interaction.channel?.type === "GUILD_TEXT") {
+            if (interaction.customId === "open-ticket-support") {
+                const supportHandler = await SupportTicketHandler.createHandler(interaction);
+                await supportHandler.createTicket();
+                await supportHandler.save();
+                return;
+            } else if (interaction.customId === 'close-ticket') {
+                const supportHandler = await SupportTicketHandler.createHandler(interaction);
+                await supportHandler.closeTicket();
+                await supportHandler.save();
+            }
         }
     } catch (error) {
         await ErrorHandler.sendErrorMessage(client, error as Error, interaction.user);

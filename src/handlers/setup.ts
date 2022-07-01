@@ -30,6 +30,7 @@ class SetupHanlder {
         const embed = Embeds.setupMessage;
         embed.setFields(
             { name: "Question Catagory:", value: String(this.config.questionCatagory), inline: false },
+            { name: "Support Catagory ID:", value: String(this.config.supportCatagory), inline: false },
             { name: "Tool Log Channel ID:", value: String(this.config.manageToolLogChannelID), inline: false },
             { name: "Question Log Channel ID:", value: String(this.config.questionLogChannelID), inline: false },
             { name: "Max Question Per Member:", value: String(this.config.maxQuestions), inline: false },
@@ -53,6 +54,11 @@ class SetupHanlder {
         }
     }
 
+    async isCatagory(id: string) {
+        const catagory = this.guild.channels.cache.get(id);
+        return catagory && catagory.type === "GUILD_CATEGORY";
+    }
+
     async isChannel(id: string): Promise<boolean> {
         const channel = this.guild.channels.cache.get(id);
         if (!channel) return false;
@@ -66,7 +72,14 @@ class SetupHanlder {
     async setConfigValue(key: string, value: string) {
         const options: any = {
             "question-catagory": async () => {
-                await this.setCatagory(value);
+                if (await this.isCatagory(value)) {
+                    this.config.questionCatagory = value;
+                } else { await this.channel.send("I don't think this is a catagory id...") }
+            },
+            "support-catagory": async () => {
+                if (await this.isCatagory(value)) {
+                    this.config.supportCatagory = value;
+                } else { await this.channel.send("I don't think this is a catagory id...") }
             },
             "question-log-channel-id": async () => {
                 if (await this.isChannel(value)) {
@@ -126,6 +139,7 @@ class SetupHanlder {
     async checkDone(): Promise<boolean> {
         return !!(this.config.guildId &&
             this.config.questionCatagory &&
+            this.config.supportCatagory &&
             this.config.language &&
             this.config.manageToolLogChannelID &&
             this.config.questionLogChannelID &&
