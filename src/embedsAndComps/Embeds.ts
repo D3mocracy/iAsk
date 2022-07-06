@@ -36,12 +36,13 @@ namespace Embeds {
         });
     }
 
-    export function supportTicketMainMessage(ticketNumber: number, member: GuildMember) {
+    export function supportTicketMainMessage(ticketNumber: number, member: GuildMember, lang: string) {
+        const supportMsg = LanguageHandler.getMessageByLang("supportTicketMainMessage", lang);
         return new MessageEmbed({
             thumbnail,
-            title: `Support Ticket #${ticketNumber}`,
-            description: `Creator: ${member.user.tag} \n Got your answer? click on the 'Close' Button`,
-            footer: { text: `Do Not Mention Staff Member On Ticket Channel` },
+            title: `${supportMsg.title} #${ticketNumber}`,
+            description: `${supportMsg.creator}: ${member.user.tag} \n ${supportMsg.description}`,
+            footer: { text: `${supportMsg.footer}` },
             color: 'AQUA'
         })
     }

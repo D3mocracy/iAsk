@@ -78,8 +78,8 @@ namespace Components {
         return new MessageActionRow().addComponents(manageQuestionMenu);
     }
 
-    export async function supportTicket() {
-        const close = new MessageButton().setCustomId('close-ticket').setLabel('Close').setStyle('DANGER').setEmoji('🔐');
+    export async function supportTicket(lang: string) {
+        const close = new MessageButton().setCustomId('close-ticket').setLabel(LanguageHandler.getMessageByLang('closeTicketButton', lang)).setStyle('DANGER').setEmoji('🔐');
         return new MessageActionRow().addComponents(close);
     }
 

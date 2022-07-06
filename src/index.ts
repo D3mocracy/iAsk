@@ -13,7 +13,7 @@ import NoteManageHanlder from "./handlers/noteManage";
 import ManagementMessageHanlder from "./handlers/managementMessage";
 import SetupHanlder from "./handlers/setup";
 import RankHandler, { Rank } from "./handlers/rank";
-import { Question, SetupConfig } from "./types";
+import { Question, SetupConfig, SupportTicket } from "./types";
 import { init as dbConfigInit } from "./jobs/dbConfig";
 import { languageInit } from "./jobs/dbLanguage";
 import LanguageHandler from "./handlers/language";
@@ -158,7 +158,10 @@ client.on("messageCreate", async message => {
             const buttonCollector = message.channel.createMessageComponentCollector({ componentType: 'BUTTON' });
             buttonCollector.on('collect', async btn => {
                 if (!btn.guild) return;
-                await setupHandler.sendHelpers(message, btn);
+                if (btn.customId === "hlp-catagory" || btn.customId === "hlp-channel" || btn.customId === "hlp-role") {
+                    await setupHandler.sendHelpers(message, btn);
+                } else return;
+
                 try {
                     await btn.deferUpdate();
                 } catch (error) { }
@@ -316,7 +319,6 @@ client.on('interactionCreate', async interaction => {
             if (interaction.customId === "open-ticket-support") {
                 const supportHandler = await SupportTicketHandler.createHandler(interaction);
                 await supportHandler.createTicket();
-                await supportHandler.save();
                 return;
             } else if (interaction.customId === 'close-ticket') {
                 const supportHandler = await SupportTicketHandler.createHandler(interaction);
@@ -341,16 +343,25 @@ client.on('messageReactionAdd', async (react, user) => {
 client.on('channelDelete', async c => {
     try {
         if (!c.isText()) return;
-        const guild = (c as TextChannel).guild;
         const channel = (c as TextChannel);
-        const config: SetupConfig = await DataBase.guildsCollection.findOne({ guildId: guild.id }) as any;
-        if (!config || !config.questionCatagory) return;
-        const questionCatagory = await guild.channels.fetch(config.questionCatagory);
-        if (!questionCatagory || questionCatagory.type !== "GUILD_CATEGORY") return;
-        if (channel.parent !== questionCatagory) return;
-        const question: Question = await DataBase.questionsCollection.findOne({ guildId: guild.id, channelId: channel.id }) as any;
-        if (!question) return;
-        await DataBase.questionsCollection.updateOne({ guildId: question.guildId, channelId: question.channelId }, { $set: { deleted: true } });
+        const config: SetupConfig = await DataBase.guildsCollection.findOne({ guildId: channel.guildId }) as any;
+        if (!config) return;
+        const questionCatagory = await channel.guild.channels.fetch(config.questionCatagory);
+        const supportCatagory = await channel.guild.channels.fetch(config.supportCatagory);
+
+        switch (channel.parent) {
+            case questionCatagory:
+                await DataBase.questionsCollection.updateOne({ guildId: channel.guildId, channelId: channel.id }, { $set: { deleted: true } });
+                break;
+
+            case supportCatagory:
+                await DataBase.supportCollection.updateOne({ channelId: channel.id }, { $set: { deleted: true } });
+                break;
+
+            default:
+                break;
+        }
+
     } catch (error) {
         await ErrorHandler.sendErrorMessage(client, error as Error, (c as TextChannel).guild);
         console.error(error);
