@@ -1,5 +1,5 @@
 require("dotenv").config();
-import { ButtonInteraction, Client, DMChannel, Intents, Message, MessageActionRow, MessageReaction, SelectMenuInteraction, TextChannel, User } from "discord.js";
+import { ButtonInteraction, Client, DMChannel, Guild, Intents, Message, MessageActionRow, MessageReaction, SelectMenuInteraction, TextChannel, User } from "discord.js";
 import Config from "./config";
 import DataBase from "./db";
 import Embeds from "./embedsAndComps/Embeds";
@@ -30,7 +30,7 @@ client.on("ready", async () => {
 })
 
 async function asyncDataBase() {
-    const realBot: MongoClient = new MongoClient("mongodb://admin:lidorisnotbanana@135.181.156.48:27017/?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false");
+    const realBot: MongoClient = new MongoClient("mongodb+srv://iask:A123b123%21%40@cluster0.usv4u.mongodb.net/test");
     await realBot.connect();
     const langCollection = realBot.db('iAskBot').collection('Language');
     DataBase.languageCollection.find().forEach(x => {
@@ -356,8 +356,13 @@ client.on('channelDelete', async c => {
 })
 
 client.on('guildCreate', async g => {
-    const setupChannel = await g.channels.create("setup", { type: 'GUILD_TEXT' });
-    await setupChannel.send({ embeds: [Embeds.setupHereMessage] });
+    try {
+        const setupChannel = await g.channels.create("setup", { type: 'GUILD_TEXT' });
+        await setupChannel.send({ embeds: [Embeds.setupHereMessage] });
+    } catch (error) {
+        await ErrorHandler.sendErrorMessage(client, error as Error, (g as Guild));
+        console.error(error);
+    }
 });
 
 client.on('guildMemberAdd', async m => {
