@@ -1,9 +1,8 @@
 require("dotenv").config();
-import { Client, DMChannel, Intents, Message, MessageActionRow, MessageReaction, SelectMenuInteraction, TextChannel, User } from "discord.js";
+import { ButtonInteraction, Client, DMChannel, Intents, Message, MessageActionRow, MessageReaction, SelectMenuInteraction, TextChannel, User } from "discord.js";
 import Config from "./config";
 import DataBase from "./db";
 import Embeds from "./embedsAndComps/Embeds";
-import ChangeDetailsHandler from "./handlers/changeDetails";
 import ManageMemberHanlder from "./handlers/manageMember";
 import NewNoteHandler from "./handlers/newNote";
 import ManageQuestionHandler from "./handlers/manageQuestion";
@@ -17,16 +16,16 @@ import { Question, SetupConfig, SupportTicket } from "./types";
 import { init as dbConfigInit } from "./jobs/dbConfig";
 import { languageInit } from "./jobs/dbLanguage";
 import LanguageHandler from "./handlers/language";
-import ReactionHandler from "./handlers/reactionHandler";
+import NotificationHandler from "./handlers/reactionHandler";
 import ErrorHandler from "./handlers/error";
 import { MongoClient } from "mongodb";
 import Components from "./embedsAndComps/components";
 import SupportTicketHandler from "./handlers/support";
-export const client: Client = new Client({ partials: ["CHANNEL"], intents: new Intents(32767) });
+export const client: Client = new Client({ partials: ["CHANNEL", "GUILD_MEMBER", "MESSAGE", "USER"], intents: new Intents(32767) });
 
 
 client.on("ready", async () => {
-    await asyncDataBase();
+    // await asyncDataBase();
     console.log("iAsk is online! :D");
 })
 
@@ -60,15 +59,6 @@ client.on("messageCreate", async message => {
             const managementMessageHandler = await ManagementMessageHanlder.createHandler(message.author, client);
             await managementMessageHandler.setContent(message.content, message.channel as DMChannel);
             await managementMessageHandler.save();
-            return;
-        }
-
-        if (await ChangeDetailsHandler.checkIfUserIsManagingDetail(message.author)) {
-            const changeDetailHandler = await ChangeDetailsHandler.createHandler(client, message.author.id);
-            if (changeDetailHandler === undefined) return;
-            const detail = changeDetailHandler.manageObject.status;
-            changeDetailHandler.sendSureChangeDetailMessage(message.channel as DMChannel, detail, message);
-            await changeDetailHandler.save();
             return;
         }
 
@@ -141,13 +131,14 @@ client.on("messageCreate", async message => {
         if (message.content === "!notif") {
             if (!message.member?.permissions.has('ADMINISTRATOR')) return;
             const lang = (await DataBase.guildsCollection.findOne({ guildId: message.guildId }))?.language || "en";
-            await (await message.channel.send({ embeds: [Embeds.notificationMessage(lang)] })).react('🔔');
+            await (await message.channel.send({ embeds: [Embeds.notificationMessage(lang)], components: [Components.notificationButton()] }));
             await message.delete();
         }
         if (message.content === "!support") {
             if (!message.member?.permissions.has('ADMINISTRATOR')) return;
             const lang = (await DataBase.guildsCollection.findOne({ guildId: message.guildId }))?.language || "en";
             await message.channel.send({ embeds: [Embeds.supportOpenTicketMessage(lang)], components: [Components.supportOpenTicketButton(lang)] });
+            await message.delete();
         }
         const args = message.content.split(" ");
         if (args[0] === "!setup" && message.member?.permissions.has('ADMINISTRATOR')) {
@@ -324,6 +315,9 @@ client.on('interactionCreate', async interaction => {
                 const supportHandler = await SupportTicketHandler.createHandler(interaction);
                 await supportHandler.closeTicket();
                 await supportHandler.save();
+            } else if (interaction.customId === "notif-btn") {
+                const notificationHandler = await NotificationHandler.createHandler(client, interaction as ButtonInteraction);
+                await notificationHandler.notificationRank();
             }
         }
     } catch (error) {
@@ -331,14 +325,6 @@ client.on('interactionCreate', async interaction => {
         console.error(error);
     }
 });
-
-client.on('messageReactionAdd', async (react, user) => {
-    if (user.bot || react.message.channel.type !== "GUILD_TEXT") return;
-    const reactionHandler = await ReactionHandler.createHandler(client, react as MessageReaction, user as User);
-    await reactionHandler.notificationRank();
-    await reactionHandler.removeReactionsFromAnyBotMessage();
-
-})
 
 client.on('channelDelete', async c => {
     try {

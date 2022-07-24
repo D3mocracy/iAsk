@@ -142,6 +142,11 @@ namespace Components {
         return new MessageActionRow().addComponents(btn);
     }
 
+    export function notificationButton() {
+        const btn = new MessageButton().setCustomId('notif-btn').setEmoji('🔔').setStyle('SECONDARY');
+        return new MessageActionRow().addComponents(btn);
+    }
+
 
     export function changeDetails(lang: string) {
         const changeDetailsMenu = new MessageSelectMenu().setCustomId('change-dtl').setPlaceholder(LanguageHandler.getMessageByLang('chooseOption', lang));

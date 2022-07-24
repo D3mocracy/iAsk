@@ -10,6 +10,7 @@ import SetupHanlder from "./setup";
 import Utils from "../utils";
 import RankHandler, { Rank } from "./rank";
 import LanguageHandler from "./language";
+import EditDetailHandler from "./editDetail";
 
 class ManageQuestionHandler {
     private question: Question = {} as any;
@@ -177,14 +178,8 @@ class ManageQuestionHandler {
     }
 
     async changeDetail(interaction: SelectMenuInteraction) {
-        const configMsg = this.getMessageFromLangHandler('changeDetailsMessages');
-        const messages: any = {
-            "change-title": configMsg.title,
-            "change-description": configMsg.description,
-        }
-        await DataBase.detailsManagementCollection.updateOne({ managerId: this.sender.id }, { $set: { status: interaction.values[0], channelId: this.questionChannelId } }, { upsert: true });
-        await this.dmChannel.send(messages[interaction.values[0]]);
-        await interaction.update({ components: [Components.changeDetails(this.lang)] });
+        const editDetailHandler = await EditDetailHandler.createHandler(this.bot, interaction);
+        await editDetailHandler.askChange();
 
     }
 
