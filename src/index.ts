@@ -321,8 +321,9 @@ client.on('interactionCreate', async interaction => {
             }
         }
     } catch (error) {
-        await ErrorHandler.sendErrorMessage(client, error as Error, interaction.user);
         console.error(error);
+        await ErrorHandler.sendErrorMessage(client, error as Error, interaction.user);
+
     }
 });
 

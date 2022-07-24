@@ -344,6 +344,15 @@ namespace Embeds {
         })
     };
 
+    export function errorChangeDetail(lang: string) {
+        const errorMsg = LanguageHandler.getMessageByLang('errorChangeDetail', lang);
+        return new MessageEmbed({
+            title: errorMsg.title,
+            description: errorMsg.description,
+            author, thumbnail,
+            color: 'DARK_RED'
+        })
+    }
 
 
 }

@@ -37,23 +37,23 @@ class EditDetailHandler {
         }
         await this.interaction.channel?.send(messages[this.interaction.values[0]]);
         await this.interaction.update({ components: [Components.changeDetails(this.lang)] });
-        this.getDetailData(this.interaction.values[0])
+        await this.getDetailData(this.interaction.values[0])
     }
 
     async sendSureMessage(detailType: string, newDetail: string) {
+        console.log(detailType, newDetail);
+
         if (!this.interaction.channel) return;
         const sureMsg = await this.interaction.channel.send({ embeds: [Embeds.sureChangeDetail(this.lang)], components: [Components.sureChangeDetailButtons(this.lang)] });
-        const buttonCollector = this.interaction.channel.createMessageComponentCollector({ componentType: "BUTTON", time: 10 * 1000 });
+
+        const buttonCollector = this.interaction.channel.createMessageComponentCollector({ componentType: "BUTTON", max: 1, time: 10 * 1000 });
         buttonCollector.on('collect', async btn => {
             if (btn.customId === 'cng-dtl-sure') {
                 const options: any = {
-                    "change-title": async () => this.setTitle(newDetail),
-                    "change-description": async () => this.setDescription(newDetail),
+                    "change-title": async () => await this.setTitle(newDetail),
+                    "change-description": async () => await this.setDescription(newDetail),
                 }
                 await options[detailType]();
-                await this.save();
-                await btn.update({ components: [] });
-                await this.sendNewQuestionMessage();
 
             } else if (btn.customId === 'cng-dtl-cancel') {
                 await sureMsg.edit({ components: [] });
@@ -72,26 +72,35 @@ class EditDetailHandler {
         });
 
         messageCollector?.on('end', async () => {
-            if (detailType === "change-title") {
-                await this.sendSureMessage(detailType, newDetail);
-
-            } else if (detailType === "change-description") {
-                await this.sendSureMessage(detailType, newDetail);
-            }
+            await this.sendSureMessage(detailType, newDetail);
         })
 
     }
 
     async setTitle(newTitle: string) {
-        newTitle.length > 100 ? this.question.title = `${newTitle.slice(0, 97)}...` : this.question.title = newTitle;
         if (!this.questionChannel) return;
-        await this.questionChannel.setName(this.question.title);
+        try {
+            const title = newTitle.length > 100 ? `${newTitle.slice(0, 97)}...` : newTitle;
+            await new Promise((resolve, reject) => {
+                this.questionChannel.setName(`${title}`, "bot changed").then(resolve);
+                setTimeout(() => reject("timeout"), 2000);
+            });
+            this.question.title = title;
+            await this.save();
+            await this.sendNewQuestionMessage();
+        }
+        catch (err) {
+            await this.interaction.channel?.send({ embeds: [Embeds.errorChangeDetail(this.lang)] });
+        }
     }
     async setDescription(newDescription: string) {
         this.question.description = newDescription;
+        await this.save();
+        await this.sendNewQuestionMessage();
     }
 
     async sendNewQuestionMessage() {
+        console.log("debug4");
         const user = await this.bot.users.fetch(this.question.authorId) || "Can't Find Member (404)";
         const questionMessage = {
             embeds: [Embeds.questionMessage(this.lang, this.question.title as string, this.question.description as string,
