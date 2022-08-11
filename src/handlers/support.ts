@@ -23,7 +23,7 @@ class SupportTicketHandler {
     }
 
     async load() {
-        this.supportTicket = await DataBase.supportCollection.findOne({ memberId: this.interaction.user.id, deleted: false }) as any || {} as SupportTicket;
+        this.supportTicket = await DataBase.supportCollection.findOne({ memberId: this.interaction.user.id, guildId: this.interaction.guildId, deleted: false }) as any || {} as SupportTicket;
     }
 
     async save() {
@@ -39,7 +39,7 @@ class SupportTicketHandler {
             if (supportCatagory) {
                 const supportTicketChannel = await supportCatagory.createChannel(`support ${this.interaction.user.username}`, { type: "GUILD_TEXT" });
                 const rankHandler = await RankHandler.createHandler(this.interaction.member as GuildMember);
-                const ticketNumber = await DataBase.supportCollection.countDocuments({}) + 1;
+                const ticketNumber = (await DataBase.supportCollection.find({ guildId: this.interaction.guildId }).toArray()).length;
 
                 this.supportTicket = { channelId: supportTicketChannel.id, guildId: this.interaction.guildId as string, deleted: false, memberId: this.interaction.user.id };
 
