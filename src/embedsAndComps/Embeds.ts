@@ -166,7 +166,7 @@ namespace Embeds {
         const msg = new MessageEmbed({
             title: obj.title,
             description, thumbnail,
-            author: { name: obj.author, iconURL: "https://i.imgur.com/I7EoZkF.png" },
+            author,
             footer: { text: `${obj.footer} ${guild.name}.` },
             color: 'DARK_ORANGE'
         })

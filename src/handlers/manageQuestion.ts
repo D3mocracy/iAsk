@@ -111,7 +111,12 @@ class ManageQuestionHandler {
         const buttonCollector = this.dmChannel.createMessageComponentCollector({ componentType: "BUTTON", time: 10 * 1000 });
         buttonCollector.on('collect', async btn => {
             if (btn.customId === 'del-sure') {
-                await this.deleteQuestion();
+                try {
+                    await this.deleteQuestion();
+                } catch (error) {
+                    console.error(error);
+                }
+                await sureMsg.edit({ components: [] });
             } else if (btn.customId === 'del-cancel') {
                 await sureMsg.edit({ components: [] });
             } else { return; }

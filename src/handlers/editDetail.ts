@@ -53,7 +53,12 @@ class EditDetailHandler {
                     "change-title": async () => await this.setTitle(newDetail),
                     "change-description": async () => await this.setDescription(newDetail),
                 }
-                await options[detailType]();
+                try {
+                    await options[detailType]();
+                } catch (error) {
+                    console.error(error);
+                }
+                await sureMsg.edit({ components: [] });
 
             } else if (btn.customId === 'cng-dtl-cancel') {
                 await sureMsg.edit({ components: [] });
