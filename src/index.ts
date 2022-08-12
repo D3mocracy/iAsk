@@ -39,143 +39,148 @@ async function asyncDataBase() {
 }
 
 client.on("messageCreate", async message => {
-    if (message.attachments.size > 0) return;
-    if (message.channel.type === "DM" && message.author != client.user) {
-        const args = message.content.split(" ");
+    try {
+        if (message.attachments.size > 0) return;
+        if (message.channel.type === "DM" && message.author != client.user) {
+            const args = message.content.split(" ");
+            if ((await Utils.commonGuildCheck(client, message.author)).length === 0) {
+                await message.channel.send(Config.error404);
+                return;
+            }
 
-        if ((await Utils.commonGuildCheck(client, message.author)).length === 0) {
-            await message.channel.send(Config.error404);
-            return;
-        }
+            if (await NewNoteHandler.isAddingNote(message.author.id)) {
+                const managerNoteHandler = await NewNoteHandler.createHandler(message.author);
+                managerNoteHandler.setNoteContent(message);
+                await managerNoteHandler.save();
+                return;
+            }
 
-        if (await NewNoteHandler.isAddingNote(message.author.id)) {
-            const managerNoteHandler = await NewNoteHandler.createHandler(message.author);
-            managerNoteHandler.setNoteContent(message);
-            await managerNoteHandler.save();
-            return;
-        }
+            if (await ManagementMessageHanlder.isWritingManageMessage(message.author.id)) {
+                const managementMessageHandler = await ManagementMessageHanlder.createHandler(message.author, client);
+                await managementMessageHandler.setContent(message.content, message.channel as DMChannel);
+                await managementMessageHandler.save();
+                return;
+            }
 
-        if (await ManagementMessageHanlder.isWritingManageMessage(message.author.id)) {
-            const managementMessageHandler = await ManagementMessageHanlder.createHandler(message.author, client);
-            await managementMessageHandler.setContent(message.content, message.channel as DMChannel);
-            await managementMessageHandler.save();
-            return;
-        }
+            if (args[0].toLowerCase() === "!question") {
+                if (args.length < 2) return;
+                const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, args[1], message.channel, message.author);
+                if (!manageQuestionHandler) return;
+                if (!(await manageQuestionHandler.checkQuestionBelongToMember())) return;
+                const guild = await client.guilds.fetch(manageQuestionHandler.questionObject.guildId as string)
+                const channel = await guild.channels.fetch(manageQuestionHandler.questionObject.channelId as string);
+                if (!channel) return;
+                await manageQuestionHandler.sendMemberQuestionManageMessage();
+                return;
+            }
 
-        if (args[0].toLowerCase() === "!question") {
-            if (args.length < 2) return;
-            const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, args[1], message.channel, message.author);
-            if (!manageQuestionHandler) return;
-            if (!(await manageQuestionHandler.checkQuestionBelongToMember())) return;
-            const guild = await client.guilds.fetch(manageQuestionHandler.questionObject.guildId as string)
-            const channel = await guild.channels.fetch(manageQuestionHandler.questionObject.channelId as string);
-            if (!channel) return;
-            await manageQuestionHandler.sendMemberQuestionManageMessage();
-            return;
-        }
+            if (args[0].toLowerCase() === Config.managePrefix) {
+                if (args.length === 3) {
+                    if (args[1] === Config.manageChannel) {
+                        const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, args[2], message.channel as DMChannel, message.author);
+                        if (!manageQuestionHandler) return;
+                        if (await manageQuestionHandler.isStaff()) {
+                            await manageQuestionHandler.sendManageQuestionMessage(message);
+                        } else {
+                            await message.reply("Sorry, you are not a staff member on that guild.");
+                            return;
+                        }
 
-        if (args[0].toLowerCase() === Config.managePrefix) {
-            if (args.length === 3) {
-                if (args[1] === Config.manageChannel) {
-                    const manageQuestionHandler = await ManageQuestionHandler.createHandler(client, args[2], message.channel as DMChannel, message.author);
-                    if (!manageQuestionHandler) return;
-                    if (await manageQuestionHandler.isStaff()) {
-                        await manageQuestionHandler.sendManageQuestionMessage(message);
+
+                    } else if (args[1] === Config.manageMember) {
+                        const user = client.users.cache.get(args[2]);
+                        if (!user) {
+                            await message.reply("Error 404: Member Not Found")
+                            return;
+                        }
+                        const handler = await ManageMemberHanlder.createHandler(client, message.author, user);
+                        handler.createNewAction(message.channel as any);
+                        handler.save();
                     } else {
-                        await message.reply("Sorry, you are not a staff member on that guild.");
-                        return;
+                        await message.channel.send({ embeds: [Embeds.worngUsageManageMsg] });
                     }
-
-
-                } else if (args[1] === Config.manageMember) {
-                    const user = client.users.cache.get(args[2]);
-                    if (!user) {
-                        await message.reply("Error 404: Member Not Found")
-                        return;
-                    }
-                    const handler = await ManageMemberHanlder.createHandler(client, message.author, user);
-                    handler.createNewAction(message.channel as any);
-                    handler.save();
+                    return;
                 } else {
                     await message.channel.send({ embeds: [Embeds.worngUsageManageMsg] });
+                    return;
                 }
-                return;
-            } else {
-                await message.channel.send({ embeds: [Embeds.worngUsageManageMsg] });
+            }
+            const lang = LanguageHandler.messageLanaguageChecker(Config.iHaveAQuestionMessage, message.content);
+            const openQuesitonHandler = await OpenQuestionHandler.createHandler(client, message.author, message.channel, lang);
+
+            if (!openQuesitonHandler.questionObject.started && lang) {
+                await openQuesitonHandler.iHaveAQuestion();
+                await openQuesitonHandler.save();
                 return;
             }
-        }
-        const lang = LanguageHandler.messageLanaguageChecker(Config.iHaveAQuestionMessage, message.content);
-        const openQuesitonHandler = await OpenQuestionHandler.createHandler(client, message.author, message.channel, lang);
 
-        if (!openQuesitonHandler.questionObject.started && lang) {
-            await openQuesitonHandler.iHaveAQuestion();
-            await openQuesitonHandler.save();
-            return;
-        }
+            if (await OpenQuestionHandler.checkIfUserHasQuestionOnDB(message.author)) {
+                if (!openQuesitonHandler.questionObject.guildId) {
+                    await openQuesitonHandler.chooseBeforeContinue();
 
-        if (await OpenQuestionHandler.checkIfUserHasQuestionOnDB(message.author)) {
-            if (!openQuesitonHandler.questionObject.guildId) {
-                await openQuesitonHandler.chooseBeforeContinue();
+                } else if (!openQuesitonHandler.questionObject.title) {
+                    await openQuesitonHandler.chooseTitle(message.content);
 
-            } else if (!openQuesitonHandler.questionObject.title) {
-                await openQuesitonHandler.chooseTitle(message.content);
-
-            } else if (!openQuesitonHandler.questionObject.description) {
-                await openQuesitonHandler.chooseDescription(message.content);
+                } else if (!openQuesitonHandler.questionObject.description) {
+                    await openQuesitonHandler.chooseDescription(message.content);
+                }
+                await openQuesitonHandler.save();
+                return;
             }
-            await openQuesitonHandler.save();
-            return;
-        }
-    } else if (message.channel.type === "GUILD_TEXT" && message.author !== client.user) {
-        if (message.content === "!notif") {
-            if (!message.member?.permissions.has('ADMINISTRATOR')) return;
+        } else if (message.channel.type === "GUILD_TEXT" && message.author !== client.user) {
             const lang = (await DataBase.guildsCollection.findOne({ guildId: message.guildId }))?.language || "en";
-            await (await message.channel.send({ embeds: [Embeds.notificationMessage(lang)], components: [Components.notificationButton()] }));
-            await message.delete();
+            if (message.content === "!ask" && message.member?.permissions.has('ADMINISTRATOR')) {
+                await message.channel.send({ embeds: [Embeds.haveAQuestionEmbedMessage(lang)], components: [Components.haveAQuestionButton(lang)] });
+                await message.delete();
+            }
+            if (message.content === "!notif" && message.member?.permissions.has('ADMINISTRATOR')) {
+                await message.channel.send({ embeds: [Embeds.notificationMessage(lang)], components: [Components.notificationButton()] });
+                await message.delete();
+            }
+            if (message.content === "!support" && message.member?.permissions.has('ADMINISTRATOR')) {
+                await message.channel.send({ embeds: [Embeds.supportOpenTicketMessage(lang)], components: [Components.supportOpenTicketButton(lang)] });
+                await message.delete();
+            }
+            const args = message.content.split(" ");
+            if (args[0] === "!setup" && message.member?.permissions.has('ADMINISTRATOR')) {
+                if (!message.guildId) return;
+                const setupHandler = await SetupHanlder.createHandler(client, message.channel as TextChannel);
+                await setupHandler.sendProlog(args[1]);
+
+                const buttonCollector = message.channel.createMessageComponentCollector({ componentType: 'BUTTON' });
+                buttonCollector.on('collect', async btn => {
+                    if (!btn.guild) return;
+                    if (btn.customId === "hlp-catagory" || btn.customId === "hlp-channel" || btn.customId === "hlp-role") {
+                        await setupHandler.sendHelpers(message, btn);
+                    } else return;
+
+                    try {
+                        await btn.deferUpdate();
+                    } catch (error) { }
+                })
+
+                const interactionCollector = message.channel.createMessageComponentCollector({ componentType: 'SELECT_MENU' });
+                interactionCollector.on('collect', async i => {
+                    if (!i.channel) return;
+
+                    try {
+                        await i.update({ content: `**Please type the new ${i.values[0].replaceAll("-", " ")}**`, embeds: [], components: [] });
+                    } catch (error) { }
+
+                    const messageCollector = i.channel.createMessageCollector({ max: 1 });
+                    messageCollector.on('collect', async m => {
+                        if (m.author.bot) return;
+                        await setupHandler.setConfigValue(i.values[0], m.content);
+                        await setupHandler.save();
+                        await m.channel.sendTyping();
+                        await setupHandler.sendSetupMessage();
+                    });
+                })
+            }
         }
-        if (message.content === "!support") {
-            if (!message.member?.permissions.has('ADMINISTRATOR')) return;
-            const lang = (await DataBase.guildsCollection.findOne({ guildId: message.guildId }))?.language || "en";
-            await message.channel.send({ embeds: [Embeds.supportOpenTicketMessage(lang)], components: [Components.supportOpenTicketButton(lang)] });
-            await message.delete();
-        }
-        const args = message.content.split(" ");
-        if (args[0] === "!setup" && message.member?.permissions.has('ADMINISTRATOR')) {
-            if (!message.guildId) return;
-            const setupHandler = await SetupHanlder.createHandler(client, message.channel as TextChannel);
-            await setupHandler.sendProlog(args[1]);
-
-            const buttonCollector = message.channel.createMessageComponentCollector({ componentType: 'BUTTON' });
-            buttonCollector.on('collect', async btn => {
-                if (!btn.guild) return;
-                if (btn.customId === "hlp-catagory" || btn.customId === "hlp-channel" || btn.customId === "hlp-role") {
-                    await setupHandler.sendHelpers(message, btn);
-                } else return;
-
-                try {
-                    await btn.deferUpdate();
-                } catch (error) { }
-            })
-
-            const interactionCollector = message.channel.createMessageComponentCollector({ componentType: 'SELECT_MENU' });
-            interactionCollector.on('collect', async i => {
-                if (!i.channel) return;
-
-                try {
-                    await i.update({ content: `**Please type the new ${i.values[0].replaceAll("-", " ")}**`, embeds: [], components: [] });
-                } catch (error) { }
-
-                const messageCollector = i.channel.createMessageCollector({ max: 1 });
-                messageCollector.on('collect', async m => {
-                    if (m.author.bot) return;
-                    await setupHandler.setConfigValue(i.values[0], m.content);
-                    await setupHandler.save();
-                    await m.channel.sendTyping();
-                    await setupHandler.sendSetupMessage();
-                });
-            })
-        }
+    } catch (error) {
+        console.error(error);
+        await ErrorHandler.sendErrorMessage(client, error as Error, message.member?.user || client.user as User);
     }
 });
 
@@ -184,8 +189,9 @@ client.on('interactionCreate', async interaction => {
         if (interaction.isSelectMenu()) {
             if (interaction.customId === "choose-guild-open-question") {
                 const openQuestionHandler = await OpenQuestionHandler.createHandler(client, interaction.user, interaction.channel);
-
-                await openQuestionHandler.chooseGuild(interaction);
+                const guild: Guild = await client.guilds.fetch(interaction.values[0]);
+                await openQuestionHandler.chooseGuild(guild);
+                await interaction.deferUpdate();
                 await openQuestionHandler.save();
 
             } else if (interaction.customId === "choose-guild-manage-member") {
@@ -310,6 +316,13 @@ client.on('interactionCreate', async interaction => {
             } else if (interaction.customId === "notif-btn") {
                 const notificationHandler = await NotificationHandler.createHandler(client, interaction as ButtonInteraction);
                 await notificationHandler.notificationRank();
+            } else if (interaction.customId === "havequestion-btn") {
+                const lang = (await DataBase.guildsCollection.findOne({ guildId: interaction.guildId }))?.language || "en";
+                const DMChannel = await interaction.user.createDM();
+                const openQuestionHandler = await OpenQuestionHandler.createHandler(client, interaction.user, DMChannel as DMChannel, lang);
+                await openQuestionHandler.iHaveAQuestion(interaction.guild as Guild);
+                await openQuestionHandler.save();
+                await interaction.deferUpdate();
             }
         }
     } catch (error) {

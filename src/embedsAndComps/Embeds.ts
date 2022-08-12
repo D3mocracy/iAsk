@@ -336,6 +336,16 @@ namespace Embeds {
         })
     }
 
+    export function haveAQuestionEmbedMessage(lang: string) {
+        const msgDB = LanguageHandler.getMessageByLang('haveAQuestion', lang);
+        return new MessageEmbed({
+            title: msgDB.title,
+            description: msgDB.description,
+            author, thumbnail,
+            color: 'BLURPLE'
+        })
+    }
+
 
 }
 

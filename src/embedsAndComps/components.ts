@@ -154,6 +154,11 @@ namespace Components {
         return new MessageActionRow().addComponents(changeDetailsMenu);
     }
 
+    export function haveAQuestionButton(lang: string) {
+        const btn = new MessageButton().setCustomId('havequestion-btn').setLabel(LanguageHandler.getMessageByLang('haveAQuestionButton', lang)).setEmoji('❔').setStyle('PRIMARY');
+        return new MessageActionRow().addComponents(btn);
+    }
+
     function memberOptions(lang: string) {
         const option = LanguageHandler.getMessageByLang('memberManageOptions', lang);
         const memberOptionList: (MessageSelectOptionData & { rank: Rank[] })[] = [
