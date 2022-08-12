@@ -45,7 +45,8 @@ class SupportTicketHandler {
 
                 await supportTicketChannel.send({ embeds: [Embeds.supportTicketMainMessage(ticketNumber, this.interaction.member as GuildMember, lang)], components: [await Components.supportTicket(lang)] })
                 await (await supportTicketChannel.send(`${rankHandler.getRank(Rank.SUPERVISOR)}`)).delete();
-                await (await supportTicketChannel.send(`${this.interaction.user}`)).delete();
+                const tagUserMessage = await supportTicketChannel.send(`${this.interaction.user}`);
+                await tagUserMessage.delete();
 
                 await supportTicketChannel.permissionOverwrites.create(this.interaction.member as GuildMember, { VIEW_CHANNEL: true });
 
