@@ -157,9 +157,6 @@ namespace Components {
     function memberOptions(lang: string) {
         const option = LanguageHandler.getMessageByLang('memberManageOptions', lang);
         const memberOptionList: (MessageSelectOptionData & { rank: Rank[] })[] = [
-            // { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: option.kick.label, description: option.kick.description, value: "mbr-kick", emoji: '🦵' },
-            // { rank: [Rank.MANAGER], label: option.ban.label, description: option.ban.description, value: "mbr-ban", emoji: '🛑' },
-            // { rank: [Rank.SUPERVISOR, Rank.MANAGER], label: option.block.label, description: option.block.description, value: "mbr-block", emoji: '🚫' },
             { rank: [Rank.MANAGER], label: option.note.label, description: option.note.description, value: "mbr-note", emoji: '🗒️' },
             { rank: [Rank.MANAGER], label: option.managementMessage.label, description: option.managementMessage.description, value: "mbr-management-msg", emoji: '🤵' },
         ];

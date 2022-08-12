@@ -114,24 +114,6 @@ namespace Embeds {
         return msg;
     }
 
-    export function blockMemberMessage(lang: string, memberId: string, guildId: string) {
-        const blockMemberMessageEmbed = LanguageHandler.getMessageByLang('blockMemberMessageEmbed', lang);
-        const member = Utils.convertIDtoMemberFromGuild(client, memberId, guildId);
-        const msg = new MessageEmbed({
-            author,
-            title: blockMemberMessageEmbed.title,
-            description: blockMemberMessageEmbed.description,
-            thumbnail: { url: 'https://i.imgur.com/6hoKm9h.png' },
-            color: 'RED'
-        }).addFields([
-            { name: blockMemberMessageEmbed.guildId, value: guildId },
-            { name: blockMemberMessageEmbed.memberTag, value: member.user.tag },
-            { name: blockMemberMessageEmbed.memberId, value: memberId },
-            { name: blockMemberMessageEmbed.blockEndsIn, value: Utils.getRemainTime(member) || blockMemberMessageEmbed.none }
-        ]);
-        return msg;
-    }
-
     export function noteMemberMessage(lang: string, memberId: string, guildId: string) {
         const noteConfig = LanguageHandler.getMessageByLang('noteMemberMessageEmbed', lang);
         const member = Utils.convertIDtoMemberFromGuild(client, memberId, guildId);

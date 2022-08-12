@@ -234,20 +234,12 @@ client.on('interactionCreate', async interaction => {
                 const manageMemberHanlder = await ManageMemberHanlder.createHandler(client, interaction.user, memberId);
 
                 const options: any = {
-                    "mbr-kick": async () => manageMemberHanlder.kickMember(interaction),
-                    "mbr-ban": async () => manageMemberHanlder.banMember(interaction),
-                    "mbr-block": async () => manageMemberHanlder.updateToBlockMenu(interaction),
                     "mbr-note": async () => manageMemberHanlder.updateToNoteMenu(interaction),
                     "mbr-management-msg": async () => manageMemberHanlder.insertDetailsToManagementMessageHandler(interaction),
                 }
 
                 await options[interaction.values[0]]();
                 await manageMemberHanlder.save();
-
-            } else if (interaction.customId === "block-mbr") {
-                const memberId = await ManageMemberHanlder.getMemberIdFromDBByManagerId(interaction.user);
-                const manageMemberHanlder = await ManageMemberHanlder.createHandler(client, interaction.user, memberId);
-                await manageMemberHanlder.blockMember(interaction);
 
             } else if (interaction.customId === "note-mbr") {
                 const noteManageHanlder = await NoteManageHanlder.createHanlder(interaction);
