@@ -128,7 +128,7 @@ client.on("messageCreate", async message => {
                 return;
             }
         } else if (message.channel.type === "GUILD_TEXT" && message.author !== client.user) {
-            if (message.guildId === "884988115364749363" && message.channelId === "885004536052350986") {
+            if (message.guildId === "884988115364749363" && message.channelId === "885011183772512256") {
                 message.react('🤍');
             }
             const lang = (await DataBase.guildsCollection.findOne({ guildId: message.guildId }))?.language || "en";
