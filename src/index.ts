@@ -128,6 +128,9 @@ client.on("messageCreate", async message => {
                 return;
             }
         } else if (message.channel.type === "GUILD_TEXT" && message.author !== client.user) {
+            if (message.guildId === "884988115364749363" && message.channelId === "885004536052350986") {
+                message.react('🤍');
+            }
             const lang = (await DataBase.guildsCollection.findOne({ guildId: message.guildId }))?.language || "en";
             if (message.content === "!ask" && message.member?.permissions.has('ADMINISTRATOR')) {
                 await message.channel.send({ embeds: [Embeds.haveAQuestionEmbedMessage(lang)], components: [Components.haveAQuestionButton(lang)] });

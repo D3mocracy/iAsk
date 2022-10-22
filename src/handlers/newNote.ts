@@ -1,5 +1,4 @@
 import { Message, SelectMenuInteraction, User } from "discord.js";
-import Config from "../config";
 import DataBase from "../db";
 import Components from "../embedsAndComps/components";
 import Embeds from "../embedsAndComps/Embeds";
