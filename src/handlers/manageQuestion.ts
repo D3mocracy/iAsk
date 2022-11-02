@@ -200,12 +200,12 @@ class ManageQuestionHandler {
         await this.dmChannel.send(LanguageHandler.getMessageByLang('pleaseWriteAnonMsg', this.question.lang));
         const messageCollector = this.dmChannel.createMessageCollector({ max: 1 });
         messageCollector.on('collect', async message => {
-            await this.sendMessageOnChannel(message);
+            await this.sendMessageOnChannel(message, !(await this.checkQuestionBelongToMember()));
         });
     }
 
-    async sendMessageOnChannel(msg: Message) {
-        await this.questionChannel.send({ embeds: [Embeds.anonymousMessage(msg.content, this.question.lang)] });
+    async sendMessageOnChannel(msg: Message, isStaff: boolean) {
+        await this.questionChannel.send({ embeds: [Embeds.anonymousMessage(msg.content, isStaff, this.question.lang)] });
         await msg.reply(LanguageHandler.getMessageByLang('sentAnonMsgSuccses', this.question.lang))
     }
 

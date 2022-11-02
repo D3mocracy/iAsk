@@ -296,12 +296,14 @@ namespace Embeds {
         });
     }
 
-    export function anonymousMessage(msg: string, lang: string) {
-        const anonMessage = LanguageHandler.getMessageByLang('anonMessage', lang);
+    export function anonymousMessage(msg: string, isStaff: boolean, lang: string) {
+        let anonMsg = LanguageHandler.getMessageByLang(isStaff ? 'anonMessageStaff' : 'anonMessage', lang)
+        // const anonMessageStaff = LanguageHandler.getMessageByLang('anonMessageStaff', lang);
+        // const anonMessage = LanguageHandler.getMessageByLang('anonMessage', lang);
         return new MessageEmbed({
-            title: anonMessage.title,
+            title: anonMsg.title,
             description: msg,
-            footer: { text: anonMessage.footer },
+            footer: { text: anonMsg.footer },
             color: 'DARK_ORANGE'
         })
     }
